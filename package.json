@@ -1,0 +1,28 @@
+{
+	"name": "droptop-api",
+	"version": "1.0.0",
+	"author": "Bunz <66bunz@gmail.com> (https://droptopfour.com)",
+	"description": "This is the Droptop Four official API made with Cloudflare Workers.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Droptop-Four/Droptop-Api.git"
+	},
+	"bugs": {
+		"url": "https://github.com//Droptop-Four/Droptop-Api/issues"
+	},
+	"license": "GPL-3.0",
+	"private": true,
+	"main": "index.js",
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev"
+	},
+	"dependencies": {
+		"@tsndr/cloudflare-worker-router": "^3.2.4",
+		"realm-web": "^2.0.0"
+	},
+	"devDependencies": {
+		"wrangler": "^3.30.1"
+	}
+}
