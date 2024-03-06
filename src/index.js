@@ -9,7 +9,14 @@ const router = new Router();
 const apiVersion = '/v1';
 
 // Enabling build in CORS support
-router.cors();
+
+const cors_config = {
+	allowOrigin: '*',
+	allowMethods: '*',
+	allowHeaders: 'Content-Type, Authorization',
+};
+
+router.cors(cors_config);
 
 // router.debug();
 
