@@ -414,8 +414,9 @@ router.get(`${apiVersion}/downloads`, async ({ env, req }) => {
 
 		let basic_downloads = downloadsDocument.basic_downloads;
 		let update_downloads = downloadsDocument.update_downloads;
+		let supporter_downloads = downloadsDocument.supporter_downloads;
 
-		return new Response(JSON.stringify({ basic_downloads: basic_downloads, update_downloads: update_downloads }));
+		return new Response(JSON.stringify({ basic_downloads: basic_downloads, update_downloads: update_downloads, supporter_downloads: supporter_downloads }));
 	} catch (error) {
 		console.error('Error updating downloads:', error.message);
 
