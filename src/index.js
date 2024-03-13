@@ -1,4 +1,5 @@
 import { Router } from '@tsndr/cloudflare-worker-router';
+const JSONbig = require('json-bigint');
 
 import endpoints from './enpoints';
 
@@ -109,9 +110,10 @@ router.get(`${apiVersion}/community-apps/uuid`, async () => {
 // /v1/community-apps
 router.get(`${apiVersion}/community-apps/`, async () => {
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const communityAppsData = await response.json();
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
 
-	return new Response(JSON.stringify(communityAppsData.apps));
+	return new Response(JSONbig.stringify(communityAppsData.apps));
 });
 
 // /v1/community-apps/[id]
@@ -119,11 +121,12 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ req }) => {
 	const id = req.params.id;
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const communityAppsData = await response.json();
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
 
 	if (isNaN(id)) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -138,7 +141,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ req }) => {
 
 	if (!app) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -149,7 +152,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(app.app));
+	return new Response(JSONbig.stringify(app.app));
 });
 
 // /v1/community-apps/id/[id]
@@ -170,13 +173,14 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ req }) => {
 	}
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const communityAppsData = await response.json();
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
 
 	const app = communityAppsData.apps.find((app) => app.app.id === Number(id));
 
 	if (!app) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -187,7 +191,7 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(app.app));
+	return new Response(JSONbig.stringify(app.app));
 });
 
 // /v1/community-apps/name/[name]
@@ -195,13 +199,14 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ req }) => {
 	const name = decodeURIComponent(req.params.name);
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const communityAppsData = await response.json();
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
 
 	const app = communityAppsData.apps.find((app) => app.app.name.toLowerCase() == name.toLowerCase());
 
 	if (!app) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -212,7 +217,7 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(app.app));
+	return new Response(JSONbig.stringify(app.app));
 });
 
 // /v1/community-apps/uuid/[uuid]
@@ -220,13 +225,14 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ req }) => {
 	const uuid = req.params.uuid;
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const communityAppsData = await response.json();
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
 
 	const app = communityAppsData.apps.find((app) => app.app.uuid == uuid);
 
 	if (!app) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -237,7 +243,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(app.app));
+	return new Response(JSONbig.stringify(app.app));
 });
 
 // /v1/community-themes/id
@@ -273,9 +279,10 @@ router.get(`${apiVersion}/community-themes/uuid`, async () => {
 // /v1/community-themes
 router.get(`${apiVersion}/community-themes/`, async () => {
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const communityThemesData = await response.json();
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
 
-	return new Response(JSON.stringify(communityThemesData.themes));
+	return new Response(JSONbig.stringify(communityThemesData.themes));
 });
 
 // /v1/community-themes/[id]
@@ -283,11 +290,12 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ req }) => {
 	const id = req.params.id;
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const communityThemesData = await response.json();
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
 
 	if (isNaN(id)) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -302,7 +310,7 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ req }) => {
 
 	if (!theme) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -313,7 +321,7 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme.theme));
 });
 
 // /v1/community-themes/id/[id]
@@ -322,7 +330,7 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
 
 	if (isNaN(id)) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -334,13 +342,14 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
 	}
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const communityThemesData = await response.json();
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
 
 	const theme = communityThemesData.themes.find((theme) => theme.theme.id === Number(id));
 
 	if (!theme) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -351,7 +360,7 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme.theme));
 });
 
 // /v1/community-themes/name/[name]
@@ -359,13 +368,14 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ req }) => {
 	const name = decodeURIComponent(req.params.name);
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const communityThemesData = await response.json();
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
 
 	const theme = communityThemesData.themes.find((theme) => theme.theme.name.toLowerCase() == name.toLowerCase());
 
 	if (!theme) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -376,7 +386,7 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme.theme));
 });
 
 // /v1/community-themes/uuid/[uuid]
@@ -384,13 +394,14 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ req }) => {
 	const uuid = req.params.uuid;
 
 	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const communityThemesData = await response.json();
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
 
 	const theme = communityThemesData.themes.find((theme) => theme.theme.uuid == uuid);
 
 	if (!theme) {
 		return new Response(
-			JSON.stringify({
+			JSONbig.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -401,7 +412,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSON.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme.theme));
 });
 
 // /v1/downloads
@@ -416,7 +427,9 @@ router.get(`${apiVersion}/downloads`, async ({ env, req }) => {
 		let update_downloads = downloadsDocument.update_downloads;
 		let supporter_downloads = downloadsDocument.supporter_downloads;
 
-		return new Response(JSON.stringify({ basic_downloads: basic_downloads, update_downloads: update_downloads, supporter_downloads: supporter_downloads }));
+		return new Response(
+			JSON.stringify({ basic_downloads: basic_downloads, update_downloads: update_downloads, supporter_downloads: supporter_downloads })
+		);
 	} catch (error) {
 		console.error('Error updating downloads:', error.message);
 
