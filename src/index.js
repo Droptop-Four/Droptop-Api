@@ -10,7 +10,7 @@ const router = new Router();
 const apiVersion = '/v1';
 
 // Enabling build in CORS support
-// router.cors();
+router.cors();
 
 // router.debug();
 
