@@ -1,7 +1,8 @@
-openapi: 3.1.0
+# TODO: change it back to 3.1.0
+openapi: 3.0.2
 
 info:
-  description: "This is the Droptop Four official API made with Cloudflare Workers."
+  description: 'This is the Droptop Four official API made with Cloudflare Workers.'
   version: 1.0.0
   title: Droptop API
   termsOfService: https://droptopfour.com/terms/
@@ -13,773 +14,827 @@ info:
 
 externalDocs:
   description: Find out more about the Droptop API
-  url: http://docs.droptopfour.com/api
+  url: https://contribute.droptopfour.com/droptop-api
 
 servers:
   - url: https://api.droptopfour.com/v1
 
 tags:
-  - name: Misc
-    description: Various endpoints
-  - name: Version
-    description: About Droptop Four version
+  - name: Changelog
+    description: About Droptop Four changelog
   - name: Community Apps
     description: About Droptop Community Apps
   - name: Community Themes
     description: About Droptop Community Apps
-  - name: Changelog
-    description: About Droptop Four changelog
   - name: Droptop
     description: About Droptop
+  - name: Misc
+    description: Various endpoints
+  - name: Version
+    description: About Droptop Four version
 
 paths:
   /:
     get:
       tags:
         - Misc
-      summary: "Returns the list of enpoints"
-      description: "Returns the list of enpoints"
+      summary: 'Returns the list of enpoints'
+      description: 'Returns the list of enpoints'
       operationId: root
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Endpoints"
+                $ref: '#/components/schemas/Endpoints'
 
-  /ping:
+  /announcements:
     get:
       tags:
-        - Misc
-      summary: "Returns API version and timestamp"
-      description: "Returns API version and timestamp"
-      operationId: ping
+        - Droptop
+      summary: 'Gets the Droptop Four announcements'
+      description: 'Gets the Droptop Four announcements'
+      operationId: getAnnouncements
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PingResponse"
+                $ref: '#/components/schemas/CompleteAnnouncements'
+        '500':
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Droptop
+      summary: 'Adds a new announcements'
+      description: 'Adds a new announcements'
+      operationId: postAnnouncements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteAnnouncements'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteAnnouncements'
+        '401':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: 'Validation failed/Endpoint has been spammed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Droptop
+      summary: 'Deletes the Droptop Four announcements'
+      description: 'Deletes the Droptop Four announcements'
+      operationId: deleteAnnouncements
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteAnnouncements'
+        '401':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
-  /version:
+  '/announcements/{platform}':
     get:
       tags:
-        - Version
-      summary: "Get the latest Droptop Four version"
-      description: "Gets the latest Droptop Four version"
-      operationId: getVersion
+        - Droptop
+      summary: 'Gets the Droptop Four announcement'
+      description: 'Gets the Droptop Four announcement'
+      operationId: getPlatformAnnouncements
+      parameters:
+        - name: platform
+          in: path
+          description: 'Platform of the announcement to get (app, website)'
+          required: true
+          schema:
+            $ref: '#/components/schemas/AnnouncementPlatform'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DroptopVersionResponse"
+                $ref: '#/components/schemas/CompleteAnnouncements'
+        '500':
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Droptop
+      summary: 'Adds a new announcements'
+      description: 'Adds a new announcements'
+      operationId: postPlatformAnnouncements
+      parameters:
+        - name: platform
+          in: path
+          description: 'Platform of the announcement to post (app, website)'
+          required: true
+          schema:
+            $ref: '#/components/schemas/AnnouncementPlatform'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatformAnnouncement'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteAnnouncements'
+        '401':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: 'Validation failed/Endpoint has been spammed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Droptop
+      summary: 'Deletes the Droptop Four announcements'
+      description: 'Deletes the Droptop Four announcements'
+      operationId: deletePlatformAnnouncements
+      parameters:
+        - name: platform
+          in: path
+          description: 'Platform of the announcement to delete (app, website)'
+          required: true
+          schema:
+            $ref: '#/components/schemas/AnnouncementPlatform'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteAnnouncements'
+        '401':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /changelog:
     get:
       tags:
         - Changelog
-      summary: "Get the Droptop Four changelog"
-      description: "Gets the Droptop Four entire changelog"
+      summary: 'Get the Droptop Four changelog'
+      description: 'Gets the Droptop Four entire changelog'
       operationId: getChangelog
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-               $ref: "#/components/schemas/Changelog"
+                $ref: '#/components/schemas/Changelog'
 
-  "/changelog/{version}":
+  '/changelog/{version}':
     get:
       tags:
         - Changelog
-      summary: "Get changenotes of a specific version"
-      description: "Gets the changenotes of a specific Droptop version"
+      summary: 'Get changenotes of a specific version'
+      description: 'Gets the changenotes of a specific Droptop version'
       operationId: getChangelogByVersion
       parameters:
         - name: version
           in: path
-          description: "Version of Droptop to get"
+          description: 'Version of Droptop to get'
           required: true
           schema:
-            $ref: "#/components/schemas/DroptopVersion"
+            $ref: '#/components/schemas/DroptopVersion'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Changenote"
-        "400":
-          description: "Invalid Droptop version"
+                $ref: '#/components/schemas/Changenote'
+        '400':
+          description: 'Invalid Droptop version'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: "Changenote not found"
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'Changenote not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-apps:
     get:
       tags:
         - Community Apps
-      summary: "Get Droptop Community Apps"
-      description: "Gets all the Community Apps of Droptop"
+      summary: 'Get Droptop Community Apps'
+      description: 'Gets all the Community Apps of Droptop'
       operationId: getCommunityApps
-      responses: 
-        "200":
-          description: "Successful operation"
+      responses:
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApps"
+                $ref: '#/components/schemas/CommunityApps'
 
-  "/community-apps/{id}":
+  '/community-apps/{id}':
     get:
       tags:
         - Community Apps
-      summary: "Get a specific Community App"
-      description: "Gets a specific Community App by id"
+      summary: 'Get a specific Community App'
+      description: 'Gets a specific Community App by id'
       operationId: getCommunityAppsByIdDefault
       parameters:
         - name: id
           in: path
-          description: "Id of the Community App to get"
+          description: 'Id of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Id"
+            $ref: '#/components/schemas/Id'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApp"
-        "400":
-          description: "Invalid id"
+                $ref: '#/components/schemas/CommunityApp'
+        '400':
+          description: 'Invalid id'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: "App not found"
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'App not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-apps/id:
     get:
       tags:
         - Community Apps
-      summary: "Get a specific Community App by id"
-      description: "Gets a specific Community App by id"
+      summary: 'Get a specific Community App by id'
+      description: 'Gets a specific Community App by id'
       operationId: getCommunityAppsByIdEmpty
       responses:
-        "303":
-          description: "Redirects to the root request if the id parameter is empty/none"
+        '303':
+          description: 'Redirects to the root request if the id parameter is empty/none'
 
   /community-apps/id/{id}:
     get:
       tags:
         - Community Apps
-      summary: "Get a specific Community App by id"
-      description: "Gets a specific Community App by id"
+      summary: 'Get a specific Community App by id'
+      description: 'Gets a specific Community App by id'
       operationId: getCommunityAppsById
       parameters:
         - name: id
           in: path
-          description: "The id of the Community App to get"
+          description: 'The id of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Id"
+            $ref: '#/components/schemas/Id'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApp"
-        "400":
-          description: "Invalid id"
+                $ref: '#/components/schemas/CommunityApp'
+        '400':
+          description: 'Invalid id'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: "App not found"
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'App not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-apps/name:
     get:
       tags:
         - Community Apps
-      summary: "Get a specific Community App by name"
-      description: "Gets a specific Community App by name"
+      summary: 'Get a specific Community App by name'
+      description: 'Gets a specific Community App by name'
       operationId: getCommunityAppsByNameEmpty
       responses:
-        "303":
-          description: "Redirects to the root request if the name parameter is empty/none"
+        '303':
+          description: 'Redirects to the root request if the name parameter is empty/none'
 
   /community-apps/name/{name}:
     get:
       tags:
         - Community Apps
-      summary: "Get a specific Community App by name"
-      description: "Gets a specific Community App by name"
+      summary: 'Get a specific Community App by name'
+      description: 'Gets a specific Community App by name'
       operationId: getCommunityAppsByName
       parameters:
         - name: name
           in: path
-          description: "The name of the Community App to get"
+          description: 'The name of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Name"
+            $ref: '#/components/schemas/Name'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApp"
-        "404":
-          description: "App not found"
+                $ref: '#/components/schemas/CommunityApp'
+        '404':
+          description: 'App not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-apps/uuid:
     get:
       tags:
         - Community Apps
-      summary: "Get a specific Community App by uuid"
-      description: "Gets a specific Community App by uuid"
+      summary: 'Get a specific Community App by uuid'
+      description: 'Gets a specific Community App by uuid'
       operationId: getCommunityAppsByUuidEmpty
       responses:
-        "303":
-          description: "Redirects to the root request if the uuid parameter is empty/none"
+        '303':
+          description: 'Redirects to the root request if the uuid parameter is empty/none'
 
   /community-apps/uuid/{uuid}:
     get:
       tags:
         - Community Apps
-      summary: "Get a specific Community App by uuid"
-      description: "Gets a specific Community App by uuid"
+      summary: 'Get a specific Community App by uuid'
+      description: 'Gets a specific Community App by uuid'
       operationId: getCommunityAppsByUuid
       parameters:
         - name: uuid
           in: path
-          description: "The uuid of the Community App to get"
+          description: 'The uuid of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Uuid"
+            $ref: '#/components/schemas/Uuid'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApp"
-        "404":
-          description: "App not found"
+                $ref: '#/components/schemas/CommunityApp'
+        '404':
+          description: 'App not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-themes:
     get:
       tags:
         - Community Themes
-      summary: "Get Droptop Community Themes"
-      description: "Gets all the Community Themes of Droptop"
+      summary: 'Get Droptop Community Themes'
+      description: 'Gets all the Community Themes of Droptop'
       operationId: getCommunityThemes
-      responses: 
-        "200":
-          description: "Successful operation"
+      responses:
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityThemes"
+                $ref: '#/components/schemas/CommunityThemes'
 
-  "/community-themes/{id}":
+  '/community-themes/{id}':
     get:
       tags:
         - Community Themes
-      summary: "Get a specific Community Theme"
-      description: "Gets a specific Community Theme by id"
+      summary: 'Get a specific Community Theme'
+      description: 'Gets a specific Community Theme by id'
       operationId: getCommunityThemesByIdDefault
       parameters:
         - name: id
           in: path
-          description: "Id of the Community Theme to get"
+          description: 'Id of the Community Theme to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Id"
+            $ref: '#/components/schemas/Id'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityTheme"
-        "400":
-          description: "Invalid id"
+                $ref: '#/components/schemas/CommunityTheme'
+        '400':
+          description: 'Invalid id'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: "Theme not found"
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'Theme not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-themes/id:
     get:
       tags:
         - Community Themes
-      summary: "Get a specific Community App by id"
-      description: "Gets a specific Community App by id"
+      summary: 'Get a specific Community App by id'
+      description: 'Gets a specific Community App by id'
       operationId: getCommunityThemesByIdEmpty
       responses:
-        "303":
-          description: "Redirects to the root request if the id parameter is empty/none"
+        '303':
+          description: 'Redirects to the root request if the id parameter is empty/none'
 
   /community-themes/id/{id}:
     get:
       tags:
         - Community Themes
-      summary: "Get a specific Community App by id"
-      description: "Gets a specific Community App by id"
+      summary: 'Get a specific Community App by id'
+      description: 'Gets a specific Community App by id'
       operationId: getCommunityThemesById
       parameters:
         - name: id
           in: path
-          description: "The id of the Community App to get"
+          description: 'The id of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Id"
+            $ref: '#/components/schemas/Id'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApp"
-        "400":
-          description: "Invalid id"
+                $ref: '#/components/schemas/CommunityApp'
+        '400':
+          description: 'Invalid id'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: "App not found"
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'App not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-themes/name:
     get:
       tags:
         - Community Themes
-      summary: "Get a specific Community App by name"
-      description: "Gets a specific Community App by name"
+      summary: 'Get a specific Community App by name'
+      description: 'Gets a specific Community App by name'
       operationId: getCommunityThemesByNameEmpty
       responses:
-        "303":
-          description: "Redirects to the root request if the name parameter is empty/none"
+        '303':
+          description: 'Redirects to the root request if the name parameter is empty/none'
 
   /community-themes/name/{name}:
     get:
       tags:
         - Community Themes
-      summary: "Get a specific Community App by name"
-      description: "Gets a specific Community App by name"
+      summary: 'Get a specific Community App by name'
+      description: 'Gets a specific Community App by name'
       operationId: getCommunityThemesByName
       parameters:
         - name: name
           in: path
-          description: "The name of the Community App to get"
+          description: 'The name of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Name"
+            $ref: '#/components/schemas/Name'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApp"
-        "404":
-          description: "App not found"
+                $ref: '#/components/schemas/CommunityApp'
+        '404':
+          description: 'App not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /community-themes/uuid:
     get:
       tags:
         - Community Themes
-      summary: "Get a specific Community App by uuid"
-      description: "Gets a specific Community App by uuid"
+      summary: 'Get a specific Community App by uuid'
+      description: 'Gets a specific Community App by uuid'
       operationId: getCommunityThemesByUuidEmpty
       responses:
-        "303":
-          description: "Redirects to the root request if the uuid parameter is empty/none"
+        '303':
+          description: 'Redirects to the root request if the uuid parameter is empty/none'
 
   /community-themes/uuid/{uuid}:
     get:
       tags:
         - Community Themes
-      summary: "Get a specific Community App by uuid"
-      description: "Gets a specific Community App by uuid"
+      summary: 'Get a specific Community App by uuid'
+      description: 'Gets a specific Community App by uuid'
       operationId: getCommunityThemesByUuid
       parameters:
         - name: uuid
           in: path
-          description: "The uuid of the Community App to get"
+          description: 'The uuid of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Uuid"
+            $ref: '#/components/schemas/Uuid'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityApp"
-        "404":
-          description: "App not found"
+                $ref: '#/components/schemas/CommunityApp'
+        '404':
+          description: 'App not found'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /downloads:
     get:
       tags:
         - Droptop
-      summary: "Gets the number of downloads of Droptop Four"
-      description: "Gets the number of downloads of Droptop Four"
+      summary: 'Gets the number of downloads of Droptop Four'
+      description: 'Gets the number of downloads of Droptop Four'
       operationId: getDownloads
       responses:
-        "200":
-          description: "Succesful operation"
+        '200':
+          description: 'Succesful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Downloads"
-        "500":
-          description: "Error"
-          content: 
+                $ref: '#/components/schemas/Downloads'
+        '500':
+          description: 'Error'
+          content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-  
+                $ref: '#/components/schemas/Error'
+
   /downloads/community-apps/{uuid}:
     get:
       tags:
         - Community Apps
-      summary: "Gets the number of downloads of a Community App"
-      description: "Gets the number of downloads of a Community App"
+      summary: 'Gets the number of downloads of a Community App'
+      description: 'Gets the number of downloads of a Community App'
       operationId: getDownloadsCommunityApp
       parameters:
         - name: uuid
           in: path
-          description: "The uuid of the Community App to get"
+          description: 'The uuid of the Community App to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Uuid"
+            $ref: '#/components/schemas/Uuid'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityDownload"
-        "404":
-           description: "The app with the specified uuid doesn't exist."
-           content:
-             application/json:
-               schema:
-                 $ref: "#/components/schemas/Error"
-        "500":
-          description: "Error"
+                $ref: '#/components/schemas/CommunityDownload'
+        '404':
+          description: "The app with the specified uuid doesn't exist."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       tags:
         - Community Apps
-      summary: "Adds one to the number of downloads of a Community App"
-      description: "Adds one to the number of downloads of a Community App"
+      summary: 'Adds one to the number of downloads of a Community App'
+      description: 'Adds one to the number of downloads of a Community App'
       operationId: postDownloadsCommunityApp
       parameters:
         - name: uuid
           in: path
-          description: "The uuid of the Community App"
+          description: 'The uuid of the Community App'
           required: true
           schema:
-            $ref: "#/components/schemas/Uuid"
+            $ref: '#/components/schemas/Uuid'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityDownload"
-        "500":
-          description: "Error"
+                $ref: '#/components/schemas/CommunityDownload'
+        '500':
+          description: 'Error'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
 
   /downloads/community-themes/{uuid}:
     get:
       tags:
         - Community Themes
-      summary: "Gets the number of downloads of a Community Theme"
-      description: "Gets the number of downloads of a Community Theme"
+      summary: 'Gets the number of downloads of a Community Theme'
+      description: 'Gets the number of downloads of a Community Theme'
       operationId: getDownloadsCommunityTheme
       parameters:
         - name: uuid
           in: path
-          description: "The uuid of the Community Theme to get"
+          description: 'The uuid of the Community Theme to get'
           required: true
           schema:
-            $ref: "#/components/schemas/Uuid"
+            $ref: '#/components/schemas/Uuid'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityDownload"
-        "404":
-           description: "The theme with the specified uuid doesn't exist."
-           content:
-             application/json:
-               schema:
-                 $ref: "#/components/schemas/Error"
-        "500":
-          description: "Error"
+                $ref: '#/components/schemas/CommunityDownload'
+        '404':
+          description: "The theme with the specified uuid doesn't exist."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       tags:
         - Community Themes
-      summary: "Adds one to the number of downloads of a Community Theme"
-      description: "Adds one to the number of downloads of a Community Theme"
+      summary: 'Adds one to the number of downloads of a Community Theme'
+      description: 'Adds one to the number of downloads of a Community Theme'
       operationId: postDownloadsCommunityTheme
       parameters:
         - name: uuid
           in: path
-          description: "The uuid of the Community Theme"
+          description: 'The uuid of the Community Theme'
           required: true
           schema:
-            $ref: "#/components/schemas/Uuid"
+            $ref: '#/components/schemas/Uuid'
       responses:
-        "200":
-          description: "Successful operation"
+        '200':
+          description: 'Successful operation'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CommunityDownload"
-        "500":
-          description: "Error"
+                $ref: '#/components/schemas/CommunityDownload'
+        '500':
+          description: 'Error'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
+
+  /ping:
+    get:
+      tags:
+        - Misc
+      summary: 'Returns API version and timestamp'
+      description: 'Returns API version and timestamp'
+      operationId: ping
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+
+  /version:
+    get:
+      tags:
+        - Version
+      summary: 'Get the latest Droptop Four version'
+      description: 'Gets the latest Droptop Four version'
+      operationId: getVersion
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DroptopVersionResponse'
 
 components:
   schemas:
-    Downloads:
-      type: object
-      properties:
-        basic_downloads:
-          type: integer
-          description: "The number of downloads of the Droptop Four basic version"
-        update_downloads:
-          type: integer
-          description: "The number of downloads of the Droptop Four update"
-
-    CommunityDownload:
-      type: object
-      properties:
-        uuid:
-          $ref: "#/components/schemas/Uuid"
-        downloads:
-          type: integer
-          description: "The number of downloads."
-          
-    Endpoints:
-      type: array
-      description: "The list of enpoints"
-      items:
-        type: object
-        properties:
-          method:
-            type: string
-            description: "The method of the endpoint"
-          path:
-            type: string
-            format: uri
-            description: "The path of the endpoint"
-          description:
-            type: string
-            description: "The description of the endpoint"
-  
-    PingResponse:
-      type: object
-      description: "The response of the ping"
-      properties:
-        version:
-          type: string
-          description: "The version of the API"
-        timestamp:
-          type: string
-          format: date-time
-          description: "The current timestamp"
-
-    Id:
-      type: integer
-      description: "A numeric id"
-
-    Name:
+    AnnouncementPlatform:
       type: string
-      description: "A string"
-  
-    Uuid:
-      type: string
-      format: uuid
-      description: "An uuid"
-
-    Error:
-      type: object
-      description: "The error object"
-      properties:
-        error:
-          type: object
-          properties:
-            type:
-              type: string
-              description: "The type of error"
-            status:
-              type: integer
-              format: int32
-              description: "The code request"
-            message:
-              type: string
-              description: "The message of the error"
-
-    DroptopVersion:
-      type: string
-      description: "The version of Droptop"
-
-    DroptopVersionResponse:
-      type: object
-      properties:
-        version:
-          type: string
-          description: "Main Droptop version"
-        miniversion:
-          type: string
-          description: "Secondary Droptop version"
+      description: 'The platform of the announcement (app, website)'
+      enum:
+        - app
+        - website
 
     Changenote:
       type: object
-      description: "Changenote for specific version"
+      description: 'Changenote for specific version'
       properties:
         version:
-          $ref: "#/components/schemas/DroptopVersion"
+          $ref: '#/components/schemas/DroptopVersion'
         new_features:
           type: array
-          description: "List of new features added"
+          description: 'List of new features added'
           items:
             type: string
         modifications:
           type: array
-          description: "List of modifications made"
+          description: 'List of modifications made'
           items:
             type: string
         bug_fixes:
           type: array
-          description: "List of bugs fixed"
+          description: 'List of bugs fixed'
           items:
             type: string
 
     Changelog:
       type: object
-      description: "Changelog object"
+      description: 'Changelog object'
       properties:
         changelog:
           type: array
-          description: "Changelog array that contains all the changenotes of Droptop"
+          description: 'Changelog array that contains all the changenotes of Droptop'
           items:
-            $ref: "#/components/schemas/Changenote"
-
-    CommunityChangenote:
-      type: object
-      description: "Changelog object"
-      properties:
-        version:
-          type: string
-          description: "The version of the specific changenote"
-        changenotes:
-          type: string
-          description: "The changenotes of the specific version"
-
-    CommunityApps:
-      type: object
-      description: "The Community Apps object"
-      properties: 
-        apps:
-          type: array
-          description: "The array of all Community Apps"
-          items:
-            $ref: "#/components/schemas/CommunityApp"
+            $ref: '#/components/schemas/Changenote'
 
     CommunityApp:
       type: object
-      description: "The Community App object"
+      description: 'The Community App object'
       properties:
         App:
           type: object
           properties:
             id:
               type: integer
-              description: "The id of the Community App"
+              description: 'The id of the Community App'
             uuid:
               type: string
               format: uuid
-              description: "The uuid of the Community App"
+              description: 'The uuid of the Community App'
             name:
               type: string
-              description: "The name of the Community App"
+              description: 'The name of the Community App'
             author:
               type: string
-              description: "The author of the Community App"
+              description: 'The author of the Community App'
             author_id:
               type: integer
               description: "The author's discord id"
@@ -789,71 +844,91 @@ components:
               description: "The author's link"
             desc:
               type: string
-              description: "The description of the Community App"
+              description: 'The description of the Community App'
             version:
               type: string
-              description: "The version of the Community App"
+              description: 'The version of the Community App'
             official_link:
               type: string
               format: hostname
-              description: "The official link of the Community App"
+              description: 'The official link of the Community App'
             direct_download_link:
               type: string
               format: hostname
-              description: "The direct download link of the Community App"
+              description: 'The direct download link of the Community App'
             secondary_link:
               type: string
               format: hostname
-              description: "The secondary link of the Community App"
+              description: 'The secondary link of the Community App'
             image_url:
               type: string
               format: hostname
-              description: "The image url of the Community App"
+              description: 'The image url of the Community App'
             authorised_members:
               type: array
-              description: "The array of authorised discord ids that can edit the app"
+              description: 'The array of authorised discord ids that can edit the app'
               items:
                 type: integer
-                description: "The discord id of an autorised user"
+                description: 'The discord id of an autorised user'
             hidden:
               type: integer
-              description: "If the app is hidden from the public"
+              description: 'If the app is hidden from the public'
             changelog:
               type: array
-              description: "The changelog of the Community App"
+              description: 'The changelog of the Community App'
               items:
                 $ref: '#/components/schemas/CommunityChangenote'
 
-    CommunityThemes:
+    CommunityApps:
       type: object
-      description: "The Community Themes object"
-      properties: 
+      description: 'The Community Apps object'
+      properties:
         apps:
           type: array
-          description: "The array of all Community Themes"
+          description: 'The array of all Community Apps'
           items:
-            $ref: "#/components/schemas/CommunityTheme"
+            $ref: '#/components/schemas/CommunityApp'
+
+    CommunityChangenote:
+      type: object
+      description: 'Changelog object'
+      properties:
+        version:
+          type: string
+          description: 'The version of the specific changenote'
+        changenotes:
+          type: string
+          description: 'The changenotes of the specific version'
+
+    CommunityDownload:
+      type: object
+      properties:
+        uuid:
+          $ref: '#/components/schemas/Uuid'
+        downloads:
+          type: integer
+          description: 'The number of downloads.'
 
     CommunityTheme:
       type: object
-      description: "The Community Theme object"
+      description: 'The Community Theme object'
       properties:
         Theme:
           type: object
           properties:
             id:
               type: integer
-              description: "The id of the Community Theme"
+              description: 'The id of the Community Theme'
             uuid:
               type: string
               format: uuid
-              description: "The uuid of the Community Theme"
+              description: 'The uuid of the Community Theme'
             name:
               type: string
-              description: "The name of the Community Theme"
+              description: 'The name of the Community Theme'
             author:
               type: string
-              description: "The author of the Community Theme"
+              description: 'The author of the Community Theme'
             author_id:
               type: integer
               description: "The author's discord id"
@@ -863,37 +938,161 @@ components:
               description: "The author's link"
             desc:
               type: string
-              description: "The description of the Community Theme"
+              description: 'The description of the Community Theme'
             version:
               type: string
-              description: "The version of the Community Theme"
+              description: 'The version of the Community Theme'
             official_link:
               type: string
               format: hostname
-              description: "The official link of the Community Theme"
+              description: 'The official link of the Community Theme'
             direct_download_link:
               type: string
               format: hostname
-              description: "The direct download link of the Community Theme"
+              description: 'The direct download link of the Community Theme'
             secondary_link:
               type: string
               format: hostname
-              description: "The secondary link of the Community Theme"
+              description: 'The secondary link of the Community Theme'
             image_url:
               type: string
               format: hostname
-              description: "The image url of the Community Theme"
+              description: 'The image url of the Community Theme'
             authorised_members:
               type: array
-              description: "The array of authorised discord ids that can edit the theme"
+              description: 'The array of authorised discord ids that can edit the theme'
               items:
                 type: integer
-                description: "The discord id of an autorised user"
+                description: 'The discord id of an autorised user'
             hidden:
               type: integer
-              description: "If the app is hidden from the public"
+              description: 'If the app is hidden from the public'
             changelog:
               type: array
-              description: "The changelog of the Community Theme"
+              description: 'The changelog of the Community Theme'
               items:
                 $ref: '#/components/schemas/CommunityChangenote'
+
+    CommunityThemes:
+      type: object
+      description: 'The Community Themes object'
+      properties:
+        apps:
+          type: array
+          description: 'The array of all Community Themes'
+          items:
+            $ref: '#/components/schemas/CommunityTheme'
+
+    CompleteAnnouncements:
+      type: object
+      properties:
+        app:
+          $ref: '#/components/schemas/PlatformAnnouncement'
+        website:
+          $ref: '#/components/schemas/PlatformAnnouncement'
+
+    Downloads:
+      type: object
+      properties:
+        basic_downloads:
+          type: integer
+          description: 'The number of downloads of the Droptop Four basic version'
+        update_downloads:
+          type: integer
+          description: 'The number of downloads of the Droptop Four update'
+
+    DroptopVersion:
+      type: string
+      description: 'The version of Droptop'
+
+    DroptopVersionResponse:
+      type: object
+      properties:
+        version:
+          type: string
+          description: 'Main Droptop version'
+        miniversion:
+          type: string
+          description: 'Secondary Droptop version'
+
+    Endpoints:
+      type: array
+      description: 'The list of enpoints'
+      items:
+        type: object
+        properties:
+          method:
+            type: string
+            description: 'The method of the endpoint'
+          path:
+            type: string
+            format: uri
+            description: 'The path of the endpoint'
+          description:
+            type: string
+            description: 'The description of the endpoint'
+
+    Error:
+      type: object
+      description: 'The error object'
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: 'The type of error'
+            status:
+              type: integer
+              format: int32
+              description: 'The code request'
+            message:
+              type: string
+              description: 'The message of the error'
+
+    Id:
+      type: integer
+      description: 'A numeric id'
+
+    Name:
+      type: string
+      description: 'A string'
+
+    PingResponse:
+      type: object
+      description: 'The response of the ping'
+      properties:
+        version:
+          type: string
+          description: 'The version of the API'
+        timestamp:
+          type: string
+          format: date-time
+          description: 'The current timestamp'
+
+    PlatformAnnouncement:
+      type: object
+      properties:
+        date:
+          type: integer
+          format: int32
+          description: 'The date of the announcement'
+        expiration:
+          type: integer
+          format: int32
+          description: 'The expiration date of the announcement'
+        announcement:
+          type: string
+          description: 'The announcement'
+        type:
+          type: string
+          description: 'The type of the announcement (info, warning, error)'
+          enum:
+            - info
+            - warning
+            - error
+
+    Uuid:
+      type: string
+      format: uuid
+      description: 'An uuid'

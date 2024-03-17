@@ -1,7 +1,7 @@
 import * as Realm from 'realm-web';
 
 const {
-	BSON: { ObjectId }
+	BSON: { ObjectId },
 } = Realm;
 
 async function login(appId, apiKey) {
@@ -12,4 +12,4 @@ async function login(appId, apiKey) {
 	return user;
 }
 
-export default login
+export default login;

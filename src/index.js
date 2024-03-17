@@ -10,16 +10,29 @@ const router = new Router();
 const apiVersion = '/v1';
 
 // Enabling build in CORS support
-router.cors();
+// router.cors();
 
 // router.debug();
 
 // Register global middleware
 // router.use(({ env, req }) => {
-//     // Intercept if token doesn't match
-//     if (req.headers.get('authorization') !== env.SECRET_TOKEN)
-//         return new Response(null, { status: 401 })
-// })
+// 	// Intercept if token doesn't match
+// 	// console.log(req);
+// 	if (req.method == 'POST' && req.url.includes('announcements')) {
+// 		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
+// 			return new Response(
+// 				JSON.stringify({
+// 					error: {
+// 						type: 'Unauthorizedt',
+// 						status: 401,
+// 						message: 'You need to specify a valid API KEY.',
+// 					},
+// 				}),
+// 				{ status: 401 }
+// 			);
+// 		}
+// 	}
+// });
 
 // '/'
 router.get('/', () => {
@@ -39,6 +52,380 @@ router.get('/', () => {
 router.get(`${apiVersion}`, () => {
 	return new Response(JSON.stringify(endpoints));
 });
+
+// /v1/announcements
+router.get(`${apiVersion}/announcements`, async ({ env }) => {
+	try {
+		const response = await fetch(`https://github.com/Droptop-Four/${env.GLOBALDATA_REPO}/raw/main/data/announcements.json`);
+		const announcements = await response.json();
+
+		return new Response(JSON.stringify(announcements));
+	} catch (error) {
+		return new Response(
+			JSON.stringify({
+				error: {
+					type: 'Something went wrong',
+					status: 500,
+					message: error.message,
+				},
+			}),
+			{ status: 500 }
+		);
+	}
+});
+
+router.post(
+	`${apiVersion}/announcements`,
+	async ({ env, req }) => {
+		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Unauthorizedt',
+						status: 401,
+						message: 'You need to specify a valid API KEY.',
+					},
+				}),
+				{ status: 401 }
+			);
+		}
+	},
+	async ({ env, req }) => {
+		let new_announcement = await req.json();
+
+		let headers = {
+			Accept: 'application/vnd.github+json',
+			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
+			'X-GitHub-Api-Version': '2022-11-28',
+			'User-Agent': 'droptop-api',
+		};
+
+		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
+
+		let github_content = await fetch(url, {
+			method: 'GET',
+			headers: headers,
+		});
+		github_content = await github_content.json();
+
+		let body = {
+			message: 'New announcement',
+			content: btoa(JSON.stringify(new_announcement, null, 4)),
+			sha: github_content.sha,
+		};
+
+		let response = await fetch(`${url}`, {
+			method: 'PUT',
+			headers: headers,
+			body: JSON.stringify(body),
+		});
+
+		const message = await response.json();
+
+		if (response.status == 200) {
+			return new Response(JSON.stringify(new_announcement));
+		} else {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: response.statusText,
+						status: response.status,
+						message: message,
+					},
+				}),
+				{ status: response.status }
+			);
+		}
+	}
+);
+
+router.delete(
+	`${apiVersion}/announcements`,
+	async ({ env, req }) => {
+		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Unauthorizedt',
+						status: 401,
+						message: 'You need to specify a valid API KEY.',
+					},
+				}),
+				{ status: 401 }
+			);
+		}
+	},
+	async ({ env }) => {
+		let empty_obj = {
+			app: {
+				date: null,
+				expiration: null,
+				announcement: '',
+				type: '',
+			},
+			website: {
+				date: null,
+				expiration: null,
+				announcement: '',
+				type: '',
+			},
+		};
+
+		let headers = {
+			Accept: 'application/vnd.github+json',
+			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
+			'X-GitHub-Api-Version': '2022-11-28',
+			'User-Agent': 'droptop-api',
+		};
+
+		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
+
+		let github_content = await fetch(url, {
+			method: 'GET',
+			headers: headers,
+		});
+		github_content = await github_content.json();
+
+		let body = {
+			message: 'Deleted announcements',
+			content: btoa(JSON.stringify(empty_obj, null, 4)),
+			sha: github_content.sha,
+		};
+
+		let response;
+		response = await fetch(`${url}`, {
+			method: 'PUT',
+			headers: headers,
+			body: JSON.stringify(body),
+		});
+
+		const message = await response.json();
+
+		if (response.status == 200) {
+			return new Response(JSON.stringify(empty_obj));
+		} else {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: response.statusText,
+						status: response.status,
+						message: message,
+					},
+				}),
+				{ status: response.status }
+			);
+		}
+	}
+);
+
+// /v1/announcements/[platform]
+router.get(`${apiVersion}/announcements/:platform`, async ({ env, req }) => {
+	const platform = decodeURIComponent(req.params.platform);
+
+	const response = await fetch(`https://github.com/Droptop-Four/${env.GLOBALDATA_REPO}/raw/main/data/announcements.json`);
+	const announcements = await response.json();
+
+	if (platform === 'app') {
+		return new Response(JSON.stringify(announcements.app));
+	} else if (platform === 'website') {
+		return new Response(JSON.stringify(announcements.website));
+	}
+
+	return new Response(JSON.stringify(announcements));
+});
+
+router.post(
+	`${apiVersion}/announcements/:platform`,
+	async ({ env, req }) => {
+		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Unauthorizedt',
+						status: 401,
+						message: 'You need to specify a valid API KEY.',
+					},
+				}),
+				{ status: 401 }
+			);
+		}
+	},
+	async ({ env, req }) => {
+		const platform = decodeURIComponent(req.params.platform);
+
+		if (platform !== 'app' && platform !== 'website') {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Bad Request',
+						status: 400,
+						message: 'You need to specify a correct platform [app, website].',
+					},
+				}),
+				{ status: 400 }
+			);
+		}
+
+		let platform_announcement = await req.json();
+
+		let headers = {
+			Accept: 'application/vnd.github+json',
+			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
+			'X-GitHub-Api-Version': '2022-11-28',
+			'User-Agent': 'droptop-api',
+		};
+
+		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
+
+		let github_content = await fetch(url, {
+			method: 'GET',
+			headers: headers,
+		});
+		github_content = await github_content.json();
+		let complete_announcement = JSON.parse(atob(github_content.content));
+
+		let new_announcement;
+		if (platform === 'app') {
+			new_announcement = {
+				app: platform_announcement,
+				website: complete_announcement.website,
+			};
+		} else {
+			new_announcement = {
+				app: complete_announcement.app,
+				website: platform_announcement,
+			};
+		}
+
+		let body = {
+			message: `New ${platform} announcement`,
+			content: btoa(JSON.stringify(new_announcement, null, 4)),
+			sha: github_content.sha,
+		};
+
+		let response = await fetch(`${url}`, {
+			method: 'PUT',
+			headers: headers,
+			body: JSON.stringify(body),
+		});
+
+		const message = await response.json();
+
+		if (response.status == 200) {
+			return new Response(JSON.stringify(new_announcement));
+		} else {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: response.statusText,
+						status: response.status,
+						message: message,
+					},
+				}),
+				{ status: response.status }
+			);
+		}
+	}
+);
+
+router.delete(
+	`${apiVersion}/announcements/:platform`,
+	async ({ env, req }) => {
+		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Unauthorizedt',
+						status: 401,
+						message: 'You need to specify a valid API KEY.',
+					},
+				}),
+				{ status: 401 }
+			);
+		}
+	},
+	async ({ env, req }) => {
+		const platform = decodeURIComponent(req.params.platform);
+
+		if (platform !== 'app' && platform !== 'website') {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Bad Request',
+						status: 400,
+						message: 'You need to specify a correct platform [app, website].',
+					},
+				}),
+				{ status: 400 }
+			);
+		}
+
+		let headers = {
+			Accept: 'application/vnd.github+json',
+			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
+			'X-GitHub-Api-Version': '2022-11-28',
+			'User-Agent': 'droptop-api',
+		};
+
+		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
+
+		let github_content = await fetch(url, {
+			method: 'GET',
+			headers: headers,
+		});
+		github_content = await github_content.json();
+		let complete_announcement = JSON.parse(atob(github_content.content));
+
+		let empty_obj = {
+			date: null,
+			expiration: null,
+			announcement: '',
+			type: '',
+		};
+
+		let new_announcement;
+		if (platform === 'app') {
+			new_announcement = {
+				app: empty_obj,
+				website: complete_announcement.website,
+			};
+		} else {
+			new_announcement = {
+				app: complete_announcement.app,
+				website: empty_obj,
+			};
+		}
+
+		let body = {
+			message: `Deleted ${platform} announcement`,
+			content: btoa(JSON.stringify(new_announcement, null, 4)),
+			sha: github_content.sha,
+		};
+
+		let response = await fetch(`${url}`, {
+			method: 'PUT',
+			headers: headers,
+			body: JSON.stringify(body),
+		});
+
+		const message = await response.json();
+
+		if (response.status == 200) {
+			return new Response(JSON.stringify(new_announcement));
+		} else {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: response.statusText,
+						status: response.status,
+						message: message,
+					},
+				}),
+				{ status: response.status }
+			);
+		}
+	}
+);
 
 // /v1/changelog
 router.get(`${apiVersion}/changelog/`, async () => {
@@ -431,8 +818,6 @@ router.get(`${apiVersion}/downloads`, async ({ env, req }) => {
 			JSON.stringify({ basic_downloads: basic_downloads, update_downloads: update_downloads, supporter_downloads: supporter_downloads })
 		);
 	} catch (error) {
-		console.error('Error updating downloads:', error.message);
-
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -503,8 +888,6 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 
 		return new Response(JSON.stringify(app_data));
 	} catch (error) {
-		console.error('Error updating downloads:', error.message);
-
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -520,8 +903,6 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 
 router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
-
-	console.log(uuid);
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
 	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.APPS_COLLECTION);
@@ -546,7 +927,6 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 			let downloads = app.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
-			console.log('Downloads updated successfully');
 
 			const app_data = {
 				uuid: app.uuid,
@@ -556,8 +936,6 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 			return new Response(JSON.stringify(app_data));
 		}
 	} catch (error) {
-		console.error('Error updating downloads:', error.message);
-
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -628,8 +1006,6 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 
 		return new Response(JSON.stringify(theme_data));
 	} catch (error) {
-		console.error('Error updating downloads:', error.message);
-
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -669,7 +1045,6 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 			let downloads = theme.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
-			console.log('Downloads updated successfully');
 
 			const theme_data = {
 				uuid: theme.uuid,
@@ -679,8 +1054,6 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 			return new Response(JSON.stringify(theme_data));
 		}
 	} catch (error) {
-		console.error('Error updating downloads:', error.message);
-
 		return new Response(
 			JSON.stringify({
 				error: {
