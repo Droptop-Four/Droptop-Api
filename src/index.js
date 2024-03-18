@@ -542,6 +542,50 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ req }) => {
 	return new Response(JSONbig.stringify(app.app));
 });
 
+// /v1/community-apps/[id]/download
+router.get(`${apiVersion}/community-apps/:id/download`, async ({ req }) => {
+	const id = req.params.id;
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
+
+	if (isNaN(id)) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Invalid id',
+					status: 400,
+					message: `The '${id}' id is not a number.`,
+				},
+			}),
+			{ status: 400 }
+		);
+	}
+
+	const app = communityAppsData.apps.find((app) => app.app.id === Number(id));
+
+	if (!app) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The app with the '${id}' id does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: app.app.direct_download_link,
+		},
+	});
+});
+
 // /v1/community-apps/id/[id]
 router.get(`${apiVersion}/community-apps/id/:id`, async ({ req }) => {
 	const id = req.params.id;
