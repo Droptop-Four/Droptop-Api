@@ -625,6 +625,50 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ req }) => {
 	return new Response(JSONbig.stringify(app.app));
 });
 
+// /v1/community-apps/id/[id]/download
+router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ req }) => {
+	const id = req.params.id;
+
+	if (isNaN(id)) {
+		return new Response(
+			JSON.stringify({
+				error: {
+					type: 'Invalid id',
+					status: 400,
+					message: `The '${id}' id is not a number.`,
+				},
+			}),
+			{ status: 400 }
+		);
+	}
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
+
+	const app = communityAppsData.apps.find((app) => app.app.id === Number(id));
+
+	if (!app) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The app with the '${id}' id does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: app.app.direct_download_link,
+		},
+	});
+});
+
 // /v1/community-apps/name/[name]
 router.get(`${apiVersion}/community-apps/name/:name`, async ({ req }) => {
 	const name = decodeURIComponent(req.params.name);
@@ -651,6 +695,37 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ req }) => {
 	return new Response(JSONbig.stringify(app.app));
 });
 
+// /v1/community-apps/name/[name]/download
+router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ req }) => {
+	const name = decodeURIComponent(req.params.name);
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
+
+	const app = communityAppsData.apps.find((app) => app.app.name.toLowerCase() == name.toLowerCase());
+
+	if (!app) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The app with the "'${name}' name does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: app.app.direct_download_link,
+		},
+	});
+});
+
 // /v1/community-apps/uuid/[uuid]
 router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ req }) => {
 	const uuid = req.params.uuid;
@@ -675,6 +750,37 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ req }) => {
 	}
 
 	return new Response(JSONbig.stringify(app.app));
+});
+
+// /v1/community-apps/uuid/[uuid]/download
+router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ req }) => {
+	const uuid = req.params.uuid;
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
+	const text = await response.text();
+	const communityAppsData = JSONbig.parse(text);
+
+	const app = communityAppsData.apps.find((app) => app.app.uuid == uuid);
+
+	if (!app) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The app with the '${uuid}' uuid does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: app.app.direct_download_link,
+		},
+	});
 });
 
 // /v1/community-themes/id
@@ -755,6 +861,50 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ req }) => {
 	return new Response(JSONbig.stringify(theme.theme));
 });
 
+// /v1/community-themes/[id]/download
+router.get(`${apiVersion}/community-themes/:id/download`, async ({ req }) => {
+	const id = req.params.id;
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
+
+	if (isNaN(id)) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Invalid id',
+					status: 400,
+					message: `The '${id}' id is not a number.`,
+				},
+			}),
+			{ status: 400 }
+		);
+	}
+
+	const theme = communityThemesData.themes.find((theme) => theme.theme.id === Number(id));
+
+	if (!theme) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The theme with the '${id}' id does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: theme.theme.direct_download_link,
+		},
+	});
+});
+
 // /v1/community-themes/id/[id]
 router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
 	const id = req.params.id;
@@ -794,6 +944,50 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
 	return new Response(JSONbig.stringify(theme.theme));
 });
 
+// /v1/community-themes/id/[id]/download
+router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ req }) => {
+	const id = req.params.id;
+
+	if (isNaN(id)) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Invalid id',
+					status: 400,
+					message: `The '${id}' id is not a number.`,
+				},
+			}),
+			{ status: 400 }
+		);
+	}
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
+
+	const theme = communityThemesData.themes.find((theme) => theme.theme.id === Number(id));
+
+	if (!theme) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The theme with the '${id}' id does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: theme.theme.direct_download_link,
+		},
+	});
+});
+
 // /v1/community-themes/name/[name]
 router.get(`${apiVersion}/community-themes/name/:name`, async ({ req }) => {
 	const name = decodeURIComponent(req.params.name);
@@ -820,6 +1014,37 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ req }) => {
 	return new Response(JSONbig.stringify(theme.theme));
 });
 
+// /v1/community-themes/name/[name]/download
+router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ req }) => {
+	const name = decodeURIComponent(req.params.name);
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
+
+	const theme = communityThemesData.themes.find((theme) => theme.theme.name.toLowerCase() == name.toLowerCase());
+
+	if (!theme) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The theme with the "'${name}' name does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: theme.theme.direct_download_link,
+		},
+	});
+});
+
 // /v1/community-themes/uuid/[uuid]
 router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ req }) => {
 	const uuid = req.params.uuid;
@@ -844,6 +1069,37 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ req }) => {
 	}
 
 	return new Response(JSONbig.stringify(theme.theme));
+});
+
+// /v1/community-themes/uuid/[uuid]/download
+router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ req }) => {
+	const uuid = req.params.uuid;
+
+	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
+	const text = await response.text();
+	const communityThemesData = JSONbig.parse(text);
+
+	const theme = communityThemesData.themes.find((theme) => theme.theme.uuid == uuid);
+
+	if (!theme) {
+		return new Response(
+			JSONbig.stringify({
+				error: {
+					type: 'Not found',
+					status: 404,
+					message: `The theme with the '${uuid}' uuid does not exist.`,
+				},
+			}),
+			{ status: 404 }
+		);
+	}
+
+	return new Response(null, {
+		status: 303,
+		headers: {
+			Location: theme.theme.direct_download_link,
+		},
+	});
 });
 
 // /v1/downloads
