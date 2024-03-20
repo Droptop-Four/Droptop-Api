@@ -18,6 +18,9 @@ externalDocs:
 servers:
   - url: https://api.droptopfour.com/v1
 
+security:
+  - ApiKeyAuth: []
+
 tags:
   - name: Changelog
     description: About Droptop Four changelog
@@ -39,6 +42,7 @@ paths:
         - Misc
       summary: 'Returns the list of enpoints'
       description: 'Returns the list of enpoints'
+      security: []
       operationId: root
       responses:
         '200':
@@ -54,6 +58,7 @@ paths:
         - Droptop
       summary: 'Gets the Droptop Four announcements'
       description: 'Gets the Droptop Four announcements'
+      security: []
       operationId: getAnnouncements
       responses:
         '200':
@@ -73,6 +78,8 @@ paths:
         - Droptop
       summary: 'Adds a new announcements'
       description: 'Adds a new announcements'
+      security: 
+        - ApiKeyAuth: []
       operationId: postAnnouncements
       requestBody:
         content:
@@ -103,6 +110,8 @@ paths:
         - Droptop
       summary: 'Deletes the Droptop Four announcements'
       description: 'Deletes the Droptop Four announcements'
+      security: 
+        - ApiKeyAuth: []
       operationId: deleteAnnouncements
       responses:
         '200':
@@ -124,6 +133,7 @@ paths:
         - Droptop
       summary: 'Gets the Droptop Four announcement'
       description: 'Gets the Droptop Four announcement'
+      security: []
       operationId: getPlatformAnnouncements
       parameters:
         - name: platform
@@ -150,6 +160,8 @@ paths:
         - Droptop
       summary: 'Adds a new announcements'
       description: 'Adds a new announcements'
+      security:
+        - ApiKeyAuth: []
       operationId: postPlatformAnnouncements
       parameters:
         - name: platform
@@ -187,6 +199,8 @@ paths:
         - Droptop
       summary: 'Deletes the Droptop Four announcements'
       description: 'Deletes the Droptop Four announcements'
+      security:
+        - ApiKeyAuth: []
       operationId: deletePlatformAnnouncements
       parameters:
         - name: platform
@@ -215,6 +229,7 @@ paths:
         - Changelog
       summary: 'Get the Droptop Four changelog'
       description: 'Gets the Droptop Four entire changelog'
+      security: []
       operationId: getChangelog
       responses:
         '200':
@@ -230,6 +245,7 @@ paths:
         - Changelog
       summary: 'Get changenotes of a specific version'
       description: 'Gets the changenotes of a specific Droptop version'
+      security: []
       operationId: getChangelogByVersion
       parameters:
         - name: version
@@ -264,6 +280,7 @@ paths:
         - Community Apps
       summary: 'Get Droptop Community Apps'
       description: 'Gets all the Community Apps of Droptop'
+      security: []
       operationId: getCommunityApps
       responses:
         '200':
@@ -279,6 +296,7 @@ paths:
         - Community Apps
       summary: 'Get a specific Community App'
       description: 'Gets a specific Community App by id'
+      security: []
       operationId: getCommunityAppsByIdDefault
       parameters:
         - name: id
@@ -313,6 +331,7 @@ paths:
         - Community Apps
       summary: 'Downloads a specific Community App by id'
       description: 'Downloads a specific Community App by id'
+      security: []
       operationId: downloadCommunityAppsByIdDefault
       parameters:
         - name: id
@@ -343,6 +362,7 @@ paths:
         - Community Apps
       summary: 'Get a specific Community App by id'
       description: 'Gets a specific Community App by id'
+      security: []
       operationId: getCommunityAppsByIdEmpty
       responses:
         '303':
@@ -354,6 +374,7 @@ paths:
         - Community Apps
       summary: 'Get a specific Community App by id'
       description: 'Gets a specific Community App by id'
+      security: []
       operationId: getCommunityAppsById
       parameters:
         - name: id
@@ -388,6 +409,7 @@ paths:
         - Community Apps
       summary: 'Downloads a specific Community App by id'
       description: 'Downloads a specific Community App by id'
+      security: []
       operationId: downloadCommunityAppsById
       parameters:
         - name: id
@@ -418,6 +440,7 @@ paths:
         - Community Apps
       summary: 'Get a specific Community App by name'
       description: 'Gets a specific Community App by name'
+      security: []
       operationId: getCommunityAppsByNameEmpty
       responses:
         '303':
@@ -429,6 +452,7 @@ paths:
         - Community Apps
       summary: 'Get a specific Community App by name'
       description: 'Gets a specific Community App by name'
+      security: []
       operationId: getCommunityAppsByName
       parameters:
         - name: name
@@ -457,6 +481,7 @@ paths:
         - Community Apps
       summary: 'Downloads a specific Community App by name'
       description: 'Downloads a specific Community App by name'
+      security: []
       operationId: downloadCommunityAppsByName
       parameters:
         - name: name
@@ -481,6 +506,7 @@ paths:
         - Community Apps
       summary: 'Get a specific Community App by uuid'
       description: 'Gets a specific Community App by uuid'
+      security: []
       operationId: getCommunityAppsByUuidEmpty
       responses:
         '303':
@@ -492,6 +518,7 @@ paths:
         - Community Apps
       summary: 'Get a specific Community App by uuid'
       description: 'Gets a specific Community App by uuid'
+      security: []
       operationId: getCommunityAppsByUuid
       parameters:
         - name: uuid
@@ -520,6 +547,7 @@ paths:
         - Community Apps
       summary: 'Downloads a specific Community App by uuid'
       description: 'Downloads a specific Community App by uuid'
+      security: []
       operationId: downloadCommunityAppsByUuid
       parameters:
         - name: uuid
@@ -544,6 +572,7 @@ paths:
         - Community Themes
       summary: 'Get Droptop Community Themes'
       description: 'Gets all the Community Themes of Droptop'
+      security: []
       operationId: getCommunityThemes
       responses:
         '200':
@@ -559,6 +588,7 @@ paths:
         - Community Themes
       summary: 'Get a specific Community Theme'
       description: 'Gets a specific Community Theme by id'
+      security: []
       operationId: getCommunityThemesByIdDefault
       parameters:
         - name: id
@@ -593,6 +623,7 @@ paths:
         - Community Themes
       summary: 'Downloads a specific Community Theme'
       description: 'Downloads a specific Community Theme by id'
+      security: []
       operationId: downloadCommunityThemesByIdDefault
       parameters:
         - name: id
@@ -623,6 +654,7 @@ paths:
         - Community Themes
       summary: 'Get a specific Community App by id'
       description: 'Gets a specific Community App by id'
+      security: []
       operationId: getCommunityThemesByIdEmpty
       responses:
         '303':
@@ -634,6 +666,7 @@ paths:
         - Community Themes
       summary: 'Get a specific Community App by id'
       description: 'Gets a specific Community App by id'
+      security: []
       operationId: getCommunityThemesById
       parameters:
         - name: id
@@ -668,6 +701,7 @@ paths:
         - Community Themes
       summary: 'Downloads a specific Community App by id'
       description: 'Downloads a specific Community App by id'
+      security: []
       operationId: downloadCommunityThemesById
       parameters:
         - name: id
@@ -698,6 +732,7 @@ paths:
         - Community Themes
       summary: 'Get a specific Community App by name'
       description: 'Gets a specific Community App by name'
+      security: []
       operationId: getCommunityThemesByNameEmpty
       responses:
         '303':
@@ -709,6 +744,7 @@ paths:
         - Community Themes
       summary: 'Get a specific Community App by name'
       description: 'Gets a specific Community App by name'
+      security: []
       operationId: getCommunityThemesByName
       parameters:
         - name: name
@@ -737,6 +773,7 @@ paths:
         - Community Themes
       summary: 'Downloads a specific Community App by name'
       description: 'Downloads a specific Community App by name'
+      security: []
       operationId: downloadCommunityThemesByName
       parameters:
         - name: name
@@ -761,6 +798,7 @@ paths:
         - Community Themes
       summary: 'Get a specific Community App by uuid'
       description: 'Gets a specific Community App by uuid'
+      security: []
       operationId: getCommunityThemesByUuidEmpty
       responses:
         '303':
@@ -772,6 +810,7 @@ paths:
         - Community Themes
       summary: 'Get a specific Community App by uuid'
       description: 'Gets a specific Community App by uuid'
+      security: []
       operationId: getCommunityThemesByUuid
       parameters:
         - name: uuid
@@ -800,6 +839,7 @@ paths:
         - Community Themes
       summary: 'Downloads a specific Community App by uuid'
       description: 'Downloads a specific Community App by uuid'
+      security: []
       operationId: downloadCommunityThemesByUuid
       parameters:
         - name: uuid
@@ -824,6 +864,7 @@ paths:
         - Droptop
       summary: 'Gets the number of downloads of Droptop Four'
       description: 'Gets the number of downloads of Droptop Four'
+      security: []
       operationId: getDownloads
       responses:
         '200':
@@ -845,6 +886,7 @@ paths:
         - Community Apps
       summary: 'Gets the number of downloads of a Community App'
       description: 'Gets the number of downloads of a Community App'
+      security: []
       operationId: getDownloadsCommunityApp
       parameters:
         - name: uuid
@@ -877,6 +919,8 @@ paths:
         - Community Apps
       summary: 'Adds one to the number of downloads of a Community App'
       description: 'Adds one to the number of downloads of a Community App'
+      security:
+        - ApiKeyAuth: []
       operationId: postDownloadsCommunityApp
       parameters:
         - name: uuid
@@ -905,6 +949,7 @@ paths:
         - Community Themes
       summary: 'Gets the number of downloads of a Community Theme'
       description: 'Gets the number of downloads of a Community Theme'
+      security: []
       operationId: getDownloadsCommunityTheme
       parameters:
         - name: uuid
@@ -937,6 +982,8 @@ paths:
         - Community Themes
       summary: 'Adds one to the number of downloads of a Community Theme'
       description: 'Adds one to the number of downloads of a Community Theme'
+      security:
+        - ApiKeyAuth: []
       operationId: postDownloadsCommunityTheme
       parameters:
         - name: uuid
@@ -965,6 +1012,7 @@ paths:
         - Misc
       summary: 'Returns API version and timestamp'
       description: 'Returns API version and timestamp'
+      security: []
       operationId: ping
       responses:
         '200':
@@ -980,6 +1028,7 @@ paths:
         - Version
       summary: 'Get the latest Droptop Four version'
       description: 'Gets the latest Droptop Four version'
+      security: []
       operationId: getVersion
       responses:
         '200':
@@ -1311,3 +1360,9 @@ components:
       type: string
       format: uuid
       description: 'An uuid'
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authentication
