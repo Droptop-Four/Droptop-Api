@@ -78,7 +78,7 @@ paths:
         - Droptop
       summary: 'Adds a new announcements'
       description: 'Adds a new announcements'
-      security: 
+      security:
         - ApiKeyAuth: []
       operationId: postAnnouncements
       requestBody:
@@ -110,7 +110,7 @@ paths:
         - Droptop
       summary: 'Deletes the Droptop Four announcements'
       description: 'Deletes the Droptop Four announcements'
-      security: 
+      security:
         - ApiKeyAuth: []
       operationId: deleteAnnouncements
       responses:
