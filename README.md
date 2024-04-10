@@ -28,7 +28,9 @@
 <!-- BUTTONS -->
 
 <p align="center">
-    <a href="api.droptopfour.com/v1"><img src="https://github.com/Droptop-Four/Droptop-Api/actions/workflows/deploy.yml/badge.svg" alt="Api Status"></a>
+    <a href="api.droptopfour.com/v1"><img 
+					 	src="https://github.com/Droptop-Four/Droptop-Api/actions/workflows/deploy.yml/badge.svg" alt="Api Status"></a>
+		·
     <a href="https://github.com/Droptop-Four/Droptop-Api/stargazers"><img
             src="https://img.shields.io/github/stars/Droptop-Four/Droptop-Api.svg" alt="Stars"></a>
     ·
