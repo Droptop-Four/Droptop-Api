@@ -1164,11 +1164,14 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
 	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.APPS_COLLECTION);
+	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
+	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.APPS_COLLECTION);
 
 	try {
 		const app = await collection.findOne({ uuid: uuid });
+		const app2 = await collection2.findOne({ uuid: uuid });
 
-		if (!app) {
+		if (!app2) {
 			return new Response(
 				JSON.stringify({
 					error: {
@@ -1182,8 +1185,8 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 		}
 
 		const app_data = {
-			uuid: app.uuid,
-			downloads: app.downloads,
+			uuid: app2.uuid,
+			downloads: app2.downloads,
 		};
 
 		return new Response(JSON.stringify(app_data));
@@ -1206,30 +1209,47 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
 	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.APPS_COLLECTION);
+	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
+	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.APPS_COLLECTION);
 
 	try {
 		const app = await collection.findOne({ uuid: uuid });
+		const app2 = await collection2.findOne({ uuid: uuid });
 
-		if (!app) {
-			await collection.insertOne({
-				uuid: uuid,
-				downloads: 1,
-			});
-			let downloads = 1;
+		if (!app2) {
+			// await collection.insertOne({
+			// 	uuid: uuid,
+			// 	downloads: 1,
+			// });
+			// let downloads = 1;
 
-			const app_data = {
-				uuid: uuid,
-				downloads: downloads,
-			};
+			// const app_data = {
+			// 	uuid: uuid,
+			// 	downloads: downloads,
+			// };
 
-			return new Response(JSON.stringify(app_data));
+			// return new Response(JSON.stringify(app_data));
+
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The app with the '${uuid}' uuid does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
+
 		} else {
-			let downloads = app.downloads + 1;
+			let downloads = app2.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
+			await collection2.updateOne({ uuid: uuid }, { $set: { downloads } });
+
 
 			const app_data = {
-				uuid: app.uuid,
+				uuid: app2.uuid,
 				downloads: downloads,
 			};
 
@@ -1282,11 +1302,14 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
 	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.THEMES_COLLECTION);
+	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
+	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.THEMES_COLLECTION);
 
 	try {
 		const theme = await collection.findOne({ uuid: uuid });
+		const theme2 = await collection2.findOne({ uuid: uuid });
 
-		if (!theme) {
+		if (!theme2) {
 			return new Response(
 				JSON.stringify({
 					error: {
@@ -1300,8 +1323,8 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 		}
 
 		const theme_data = {
-			uuid: theme.uuid,
-			downloads: theme.downloads,
+			uuid: theme2.uuid,
+			downloads: theme2.downloads,
 		};
 
 		return new Response(JSON.stringify(theme_data));
@@ -1324,11 +1347,14 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
 	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.THEMES_COLLECTION);
+	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
+	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.THEMES_COLLECTION);
 
 	try {
 		const theme = await collection.findOne({ uuid: uuid });
+		const theme2 = await collection2.findOne({ uuid: uuid });
 
-		if (!theme) {
+		if (!theme2) {
 			await collection.insertOne({
 				uuid: uuid,
 				downloads: 1,
@@ -1342,12 +1368,13 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 
 			return new Response(JSON.stringify(theme_data));
 		} else {
-			let downloads = theme.downloads + 1;
+			let downloads = theme2.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
+			await collection2.updateOne({ uuid: uuid }, { $set: { downloads } });
 
 			const theme_data = {
-				uuid: theme.uuid,
+				uuid: theme2.uuid,
 				downloads: downloads,
 			};
 
