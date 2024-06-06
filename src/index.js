@@ -1171,7 +1171,7 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 		const app = await collection.findOne({ uuid: uuid });
 		const app2 = await collection2.findOne({ uuid: uuid });
 
-		if (!app2) {
+		if (!app) {
 			return new Response(
 				JSON.stringify({
 					error: {
@@ -1185,8 +1185,8 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 		}
 
 		const app_data = {
-			uuid: app2.uuid,
-			downloads: app2.downloads,
+			uuid: app.uuid,
+			downloads: app.downloads,
 		};
 
 		return new Response(JSON.stringify(app_data));
@@ -1216,7 +1216,7 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 		const app = await collection.findOne({ uuid: uuid });
 		const app2 = await collection2.findOne({ uuid: uuid });
 
-		if (!app2) {
+		if (!app) {
 			// await collection.insertOne({
 			// 	uuid: uuid,
 			// 	downloads: 1,
@@ -1242,14 +1242,14 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 			);
 
 		} else {
-			let downloads = app2.downloads + 1;
+			let downloads = app.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
 			await collection2.updateOne({ uuid: uuid }, { $set: { downloads } });
 
 
 			const app_data = {
-				uuid: app2.uuid,
+				uuid: app.uuid,
 				downloads: downloads,
 			};
 
@@ -1309,7 +1309,7 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 		const theme = await collection.findOne({ uuid: uuid });
 		const theme2 = await collection2.findOne({ uuid: uuid });
 
-		if (!theme2) {
+		if (!theme) {
 			return new Response(
 				JSON.stringify({
 					error: {
@@ -1323,8 +1323,8 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 		}
 
 		const theme_data = {
-			uuid: theme2.uuid,
-			downloads: theme2.downloads,
+			uuid: theme.uuid,
+			downloads: theme.downloads,
 		};
 
 		return new Response(JSON.stringify(theme_data));
@@ -1354,7 +1354,7 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 		const theme = await collection.findOne({ uuid: uuid });
 		const theme2 = await collection2.findOne({ uuid: uuid });
 
-		if (!theme2) {
+		if (!theme) {
 			await collection.insertOne({
 				uuid: uuid,
 				downloads: 1,
@@ -1368,13 +1368,13 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 
 			return new Response(JSON.stringify(theme_data));
 		} else {
-			let downloads = theme2.downloads + 1;
+			let downloads = theme.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
 			await collection2.updateOne({ uuid: uuid }, { $set: { downloads } });
 
 			const theme_data = {
-				uuid: theme2.uuid,
+				uuid: theme.uuid,
 				downloads: downloads,
 			};
 
