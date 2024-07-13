@@ -1,12 +1,11 @@
 import { Router } from '@tsndr/cloudflare-worker-router';
 const JSONbig = require('json-bigint');
+import { Toucan } from 'toucan-js';
 
 import endpoints from './enpoints';
-
 import login from './realm_login';
 
 const router = new Router();
-
 const apiVersion = '/v1';
 
 // Enabling build in CORS support
@@ -1426,7 +1425,27 @@ router.any('*', () => {
 });
 
 export default {
-	async fetch(request, env, ctx) {
-		return router.handle(request, env, ctx);
-	},
+    async fetch(request, env, ctx) {
+        const sentry = new Toucan({
+            dsn: env.SENTRY_DSN,
+            context: ctx,
+            request: request,
+        });
+
+        try {
+            return await router.handle(request, env, ctx);
+        } catch (error) {
+            sentry.captureException(error);
+            return new Response(
+                JSON.stringify({
+                    error: {
+                        type: 'Something went wrong',
+                        status: 500,
+                        message: 'Team has been notified.',
+                    },
+                }),
+                { status: 500 }
+            );
+        }
+    },
 };
