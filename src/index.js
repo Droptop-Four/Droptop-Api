@@ -1436,6 +1436,7 @@ export default {
             return await router.handle(request, env, ctx);
         } catch (error) {
             sentry.captureException(error);
+			console.error(error.message);
             return new Response(
                 JSON.stringify({
                     error: {
