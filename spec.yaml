@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   description: 'This is the Droptop Four official API made with Cloudflare Workers.'
-  version: 1.0.0
+  version: 1.0.1
   title: Droptop API
   termsOfService: https://droptopfour.com/terms/
   contact:
@@ -78,7 +78,7 @@ paths:
         - Droptop
       summary: 'Adds a new announcements'
       description: 'Adds a new announcements'
-      security:
+      security: 
         - ApiKeyAuth: []
       operationId: postAnnouncements
       requestBody:
@@ -110,7 +110,7 @@ paths:
         - Droptop
       summary: 'Deletes the Droptop Four announcements'
       description: 'Deletes the Droptop Four announcements'
-      security:
+      security: 
         - ApiKeyAuth: []
       operationId: deleteAnnouncements
       responses:
@@ -1006,6 +1006,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /droptop:
+    get:
+      tags:
+        - Droptop
+      summary: 'Returns data that Droptop needs'
+      description: 'Returns data that Droptop needs'
+      security: []
+      operationId: droptop
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DroptopData'
+        '500':
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /ping:
     get:
       tags:
@@ -1046,6 +1068,10 @@ components:
       enum:
         - app
         - website
+
+    AppVersion:
+      type: string
+      description: 'The version of a Community App'
 
     Changenote:
       type: object
@@ -1264,6 +1290,39 @@ components:
         update_downloads:
           type: integer
           description: 'The number of downloads of the Droptop Four update'
+
+    DroptopData:
+      type: object
+      properties:
+        version:
+          type: string
+          description: 'Main Droptop version'
+        miniversion:
+          type: string
+          description: 'Secondary Droptop version'
+        CustomApp1:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp2:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp3:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp4:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp5:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp6:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp7:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp8:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp9:
+          $ref: '#/components/schemas/AppVersion'
+        CustomApp10:
+          $ref: '#/components/schemas/AppVersion'
+      required:
+        - version
+        - miniversion
 
     DroptopVersion:
       type: string

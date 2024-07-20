@@ -52,6 +52,45 @@ router.get(`${apiVersion}`, () => {
 	return new Response(JSON.stringify(endpoints));
 });
 
+// /v1/droptop
+router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
+	try {
+		const version_response = await fetch(`https://raw.githubusercontent.com/Droptop-Four/GlobalData/main/data/version.json`);
+		const app_response = await fetch(`https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json`);
+
+		const versionData = await version_response.json();
+		const appsText = await app_response.text();
+		const appsData = JSONbig.parse(appsText);
+
+		const appVersions = {};
+		let appIndex = 1;
+		for (let param in req.query) {
+			const app = appsData.apps.find((app) => app.app.name.toLowerCase() == req.query[param].toLowerCase());
+			appVersions[`CustomApp${appIndex}`] = app.app.version;
+			appIndex++;
+		}
+
+		const response = {
+			version: versionData.version,
+			miniversion: versionData.miniversion,
+			...appVersions,
+		};
+
+		return new Response(JSON.stringify(response));
+	} catch (error) {
+		return new Response(
+			JSON.stringify({
+				error: {
+					type: 'Something went wrong',
+					status: 500,
+					message: error.message,
+				},
+			}),
+			{ status: 500 }
+		);
+	}
+});
+
 // /v1/announcements
 router.get(`${apiVersion}/announcements`, async ({ env }) => {
 	try {
@@ -1239,13 +1278,11 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 				}),
 				{ status: 404 }
 			);
-
 		} else {
 			let downloads = app.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
 			await collection2.updateOne({ uuid: uuid }, { $set: { downloads } });
-
 
 			const app_data = {
 				uuid: app.uuid,
@@ -1425,28 +1462,28 @@ router.any('*', () => {
 });
 
 export default {
-    async fetch(request, env, ctx) {
-        const sentry = new Toucan({
-            dsn: env.SENTRY_DSN,
-            context: ctx,
-            request: request,
-        });
+	async fetch(request, env, ctx) {
+		const sentry = new Toucan({
+			dsn: env.SENTRY_DSN,
+			context: ctx,
+			request: request,
+		});
 
-        try {
-            return await router.handle(request, env, ctx);
-        } catch (error) {
-            sentry.captureException(error);
+		try {
+			return await router.handle(request, env, ctx);
+		} catch (error) {
+			sentry.captureException(error);
 			console.error(error.message);
-            return new Response(
-                JSON.stringify({
-                    error: {
-                        type: 'Something went wrong',
-                        status: 500,
-                        message: 'Team has been notified.',
-                    },
-                }),
-                { status: 500 }
-            );
-        }
-    },
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Something went wrong',
+						status: 500,
+						message: 'Team has been notified.',
+					},
+				}),
+				{ status: 500 }
+			);
+		}
+	},
 };
