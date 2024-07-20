@@ -91,6 +91,11 @@ const enpoints = [
 	},
 	{
 		method: 'GET',
+		path: 'v1/droptop',
+		description: 'Returns data that Droptop needs'
+	},
+	{
+		method: 'GET',
 		path: '/v1/ping',
 		description: 'Returns a simple ping response',
 	},
