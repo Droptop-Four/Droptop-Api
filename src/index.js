@@ -66,7 +66,11 @@ router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
 		let appIndex = 1;
 		for (let param in req.query) {
 			const app = appsData.apps.find((app) => app.app.name.toLowerCase() == req.query[param].toLowerCase());
-			appVersions[`CustomApp${appIndex}`] = app.app.version;
+			if (app) {
+				appVersions[`CustomApp${appIndex}`] = app.app.version;
+			} else {
+				appVersions[`CustomApp${appIndex}`] = '0';
+			}
 			appIndex++;
 		}
 
