@@ -1259,29 +1259,37 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 		const app2 = await collection2.findOne({ uuid: uuid });
 
 		if (!app) {
-			// await collection.insertOne({
-			// 	uuid: uuid,
-			// 	downloads: 1,
-			// });
-			// let downloads = 1;
+			const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
+			const text = await response.text();
+			const communityAppsData = JSONbig.parse(text);
 
-			// const app_data = {
-			// 	uuid: uuid,
-			// 	downloads: downloads,
-			// };
+			const app_gd = communityAppsData.apps.find((app) => app.app.uuid == uuid);
 
-			// return new Response(JSON.stringify(app_data));
+			if (!app_gd) {
+				return new Response(
+					JSONbig.stringify({
+						error: {
+							type: 'Not found',
+							status: 404,
+							message: `The app with the '${uuid}' uuid does not exist.`,
+						},
+					}),
+					{ status: 404 }
+				);
+			} else {
+				await collection.insertOne({
+					uuid: uuid,
+					downloads: 1,
+				});
+				let downloads = 1;
 
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: 'Not found',
-						status: 404,
-						message: `The app with the '${uuid}' uuid does not exist.`,
-					},
-				}),
-				{ status: 404 }
-			);
+				const app_data = {
+					uuid: uuid,
+					downloads: downloads,
+				};
+
+				return new Response(JSON.stringify(app_data));
+			}
 		} else {
 			let downloads = app.downloads + 1;
 
@@ -1395,18 +1403,37 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 		const theme2 = await collection2.findOne({ uuid: uuid });
 
 		if (!theme) {
-			await collection.insertOne({
-				uuid: uuid,
-				downloads: 1,
-			});
-			let downloads = 1;
+			const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
+			const text = await response.text();
+			const communityThemesData = JSONbig.parse(text);
 
-			const theme_data = {
-				uuid: uuid,
-				downloads: downloads,
-			};
+			const theme_gd = communityThemesData.themes.find((theme) => theme.theme.uuid == uuid);
 
-			return new Response(JSON.stringify(theme_data));
+			if (!theme_gd) {
+				return new Response(
+					JSONbig.stringify({
+						error: {
+							type: 'Not found',
+							status: 404,
+							message: `The theme with the '${uuid}' uuid does not exist.`,
+						},
+					}),
+					{ status: 404 }
+				);
+			} else {
+				await collection.insertOne({
+					uuid: uuid,
+					downloads: 1,
+				});
+				let downloads = 1;
+
+				const theme_data = {
+					uuid: uuid,
+					downloads: downloads,
+				};
+
+				return new Response(JSON.stringify(theme_data));
+			}
 		} else {
 			let downloads = theme.downloads + 1;
 
