@@ -25,6 +25,6 @@
 		"toucan-js": "^4.0.0"
 	},
 	"devDependencies": {
-		"wrangler": "^3.30.1"
+		"wrangler": "^3.78.10"
 	}
 }

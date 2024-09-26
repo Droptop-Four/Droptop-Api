@@ -55,19 +55,20 @@ router.get(`${apiVersion}`, () => {
 // /v1/droptop
 router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
 	try {
-		const version_response = await fetch(`https://raw.githubusercontent.com/Droptop-Four/GlobalData/main/data/version.json`);
-		const app_response = await fetch(`https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json`);
+		const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+		const version_collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.VERSION_COLLECTION);
 
-		const versionData = await version_response.json();
-		const appsText = await app_response.text();
-		const appsData = JSONbig.parse(appsText);
+		const versionData = await version_collection.findOne({ title: 'version' }, { projection: { _id: 0 } });
+
+		const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+		const appsData = await apps_collection.find({}, { projection: { _id: 0 } });
 
 		const appVersions = {};
 		let appIndex = 1;
 		for (let param in req.query) {
-			const app = appsData.apps.find((app) => app.app.name.toLowerCase() == req.query[param].toLowerCase());
+			const app = appsData.find((app) => app.name.toLowerCase() == req.query[param].toLowerCase());
 			if (app) {
-				appVersions[`CustomApp${appIndex}`] = app.app.version;
+				appVersions[`CustomApp${appIndex}`] = app.version;
 			} else {
 				appVersions[`CustomApp${appIndex}`] = '0';
 			}
@@ -75,8 +76,8 @@ router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
 		}
 
 		const response = {
-			version: versionData.version,
-			miniversion: versionData.miniversion,
+			version: versionData.base.version,
+			miniversion: versionData.base.miniversion,
 			...appVersions,
 		};
 
@@ -537,21 +538,18 @@ router.get(`${apiVersion}/community-apps/uuid`, async () => {
 });
 
 // /v1/community-apps
-router.get(`${apiVersion}/community-apps/`, async () => {
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
+router.get(`${apiVersion}/community-apps/`, async ({ env }) => {
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	return new Response(JSONbig.stringify(communityAppsData.apps));
+	const communityAppsData = await apps_collection.find({});
+
+	return new Response(JSONbig.stringify(communityAppsData));
 });
 
 // /v1/community-apps/[id]
-router.get(`${apiVersion}/community-apps/:id`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 	const id = req.params.id;
-
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
 
 	if (isNaN(id)) {
 		return new Response(
@@ -566,7 +564,10 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ req }) => {
 		);
 	}
 
-	const app = communityAppsData.apps.find((app) => app.app.id === Number(id));
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+
+	const app = await apps_collection.findOne({ id: Number(id) });
 
 	if (!app) {
 		return new Response(
@@ -581,16 +582,12 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app.app));
+	return new Response(JSONbig.stringify(app));
 });
 
 // /v1/community-apps/[id]/download
-router.get(`${apiVersion}/community-apps/:id/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/:id/download`, async ({ env, req }) => {
 	const id = req.params.id;
-
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
 
 	if (isNaN(id)) {
 		return new Response(
@@ -605,7 +602,10 @@ router.get(`${apiVersion}/community-apps/:id/download`, async ({ req }) => {
 		);
 	}
 
-	const app = communityAppsData.apps.find((app) => app.app.id === Number(id));
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+
+	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!app) {
 		return new Response(
@@ -623,13 +623,13 @@ router.get(`${apiVersion}/community-apps/:id/download`, async ({ req }) => {
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: app.app.direct_download_link,
+			Location: app.direct_download_link,
 		},
 	});
 });
 
 // /v1/community-apps/id/[id]
-router.get(`${apiVersion}/community-apps/id/:id`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/id/:id`, async ({ env, req }) => {
 	const id = req.params.id;
 
 	if (isNaN(id)) {
@@ -645,11 +645,10 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ req }) => {
 		);
 	}
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const app = communityAppsData.apps.find((app) => app.app.id === Number(id));
+	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!app) {
 		return new Response(
@@ -664,11 +663,11 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app.app));
+	return new Response(JSONbig.stringify(app));
 });
 
 // /v1/community-apps/id/[id]/download
-router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ env, req }) => {
 	const id = req.params.id;
 
 	if (isNaN(id)) {
@@ -684,11 +683,10 @@ router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ req }) => {
 		);
 	}
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const app = communityAppsData.apps.find((app) => app.app.id === Number(id));
+	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!app) {
 		return new Response(
@@ -706,20 +704,21 @@ router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ req }) => {
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: app.app.direct_download_link,
+			Location: app.direct_download_link,
 		},
 	});
 });
 
 // /v1/community-apps/name/[name]
-router.get(`${apiVersion}/community-apps/name/:name`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/name/:name`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const app = communityAppsData.apps.find((app) => app.app.name.toLowerCase() == name.toLowerCase());
+	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
+
+	const app = communityAppsData.find((app) => app.name.toLowerCase() == name.toLowerCase());
 
 	if (!app) {
 		return new Response(
@@ -734,18 +733,19 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app.app));
+	return new Response(JSONbig.stringify(app));
 });
 
 // /v1/community-apps/name/[name]/download
-router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const app = communityAppsData.apps.find((app) => app.app.name.toLowerCase() == name.toLowerCase());
+	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
+
+	const app = communityAppsData.find((app) => app.name.toLowerCase() == name.toLowerCase());
 
 	if (!app) {
 		return new Response(
@@ -763,20 +763,19 @@ router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ req }) =
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: app.app.direct_download_link,
+			Location: app.direct_download_link,
 		},
 	});
 });
 
 // /v1/community-apps/uuid/[uuid]
-router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const app = communityAppsData.apps.find((app) => app.app.uuid == uuid);
+	const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 	if (!app) {
 		return new Response(
@@ -791,18 +790,17 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app.app));
+	return new Response(JSONbig.stringify(app));
 });
 
 // /v1/community-apps/uuid/[uuid]/download
-router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-	const text = await response.text();
-	const communityAppsData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const app = communityAppsData.apps.find((app) => app.app.uuid == uuid);
+	const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 	if (!app) {
 		return new Response(
@@ -820,7 +818,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ req }) =
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: app.app.direct_download_link,
+			Location: app.direct_download_link,
 		},
 	});
 });
@@ -856,21 +854,18 @@ router.get(`${apiVersion}/community-themes/uuid`, async () => {
 });
 
 // /v1/community-themes
-router.get(`${apiVersion}/community-themes/`, async () => {
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
+router.get(`${apiVersion}/community-themes/`, async ({ env }) => {
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
-	return new Response(JSONbig.stringify(communityThemesData.themes));
+	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
+
+	return new Response(JSONbig.stringify(communityThemesData));
 });
 
 // /v1/community-themes/[id]
-router.get(`${apiVersion}/community-themes/:id`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/:id`, async ({ env, req }) => {
 	const id = req.params.id;
-
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
 
 	if (isNaN(id)) {
 		return new Response(
@@ -885,7 +880,10 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ req }) => {
 		);
 	}
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.id === Number(id));
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+
+	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!theme) {
 		return new Response(
@@ -900,16 +898,12 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme));
 });
 
 // /v1/community-themes/[id]/download
-router.get(`${apiVersion}/community-themes/:id/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/:id/download`, async ({ env, req }) => {
 	const id = req.params.id;
-
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
 
 	if (isNaN(id)) {
 		return new Response(
@@ -924,7 +918,10 @@ router.get(`${apiVersion}/community-themes/:id/download`, async ({ req }) => {
 		);
 	}
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.id === Number(id));
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+
+	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!theme) {
 		return new Response(
@@ -942,13 +939,13 @@ router.get(`${apiVersion}/community-themes/:id/download`, async ({ req }) => {
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: theme.theme.direct_download_link,
+			Location: theme.direct_download_link,
 		},
 	});
 });
 
 // /v1/community-themes/id/[id]
-router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/id/:id`, async ({ env, req }) => {
 	const id = req.params.id;
 
 	if (isNaN(id)) {
@@ -964,11 +961,10 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
 		);
 	}
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.id === Number(id));
+	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!theme) {
 		return new Response(
@@ -983,11 +979,11 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme));
 });
 
 // /v1/community-themes/id/[id]/download
-router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ env, req }) => {
 	const id = req.params.id;
 
 	if (isNaN(id)) {
@@ -1003,11 +999,10 @@ router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ req }) => 
 		);
 	}
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.id === Number(id));
+	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!theme) {
 		return new Response(
@@ -1025,20 +1020,21 @@ router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ req }) => 
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: theme.theme.direct_download_link,
+			Location: theme.direct_download_link,
 		},
 	});
 });
 
 // /v1/community-themes/name/[name]
-router.get(`${apiVersion}/community-themes/name/:name`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/name/:name`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.name.toLowerCase() == name.toLowerCase());
+	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
+
+	const theme = communityThemesData.find((theme) => theme.name.toLowerCase() == name.toLowerCase());
 
 	if (!theme) {
 		return new Response(
@@ -1053,18 +1049,19 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme));
 });
 
 // /v1/community-themes/name/[name]/download
-router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.name.toLowerCase() == name.toLowerCase());
+	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
+
+	const theme = communityThemesData.find((theme) => theme.name.toLowerCase() == name.toLowerCase());
 
 	if (!theme) {
 		return new Response(
@@ -1082,20 +1079,19 @@ router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ req })
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: theme.theme.direct_download_link,
+			Location: theme.direct_download_link,
 		},
 	});
 });
 
 // /v1/community-themes/uuid/[uuid]
-router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.uuid == uuid);
+	const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 	if (!theme) {
 		return new Response(
@@ -1110,18 +1106,17 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme.theme));
+	return new Response(JSONbig.stringify(theme));
 });
 
 // /v1/community-themes/uuid/[uuid]/download
-router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ req }) => {
+router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-	const text = await response.text();
-	const communityThemesData = JSONbig.parse(text);
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
-	const theme = communityThemesData.themes.find((theme) => theme.theme.uuid == uuid);
+	const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 	if (!theme) {
 		return new Response(
@@ -1139,18 +1134,18 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ req })
 	return new Response(null, {
 		status: 303,
 		headers: {
-			Location: theme.theme.direct_download_link,
+			Location: theme.direct_download_link,
 		},
 	});
 });
 
 // /v1/downloads
-router.get(`${apiVersion}/downloads`, async ({ env, req }) => {
+router.get(`${apiVersion}/downloads`, async ({ env }) => {
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.DROPTOP_COLLECTION);
+	const collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.DROPTOP_DOWNLOADS);
 
 	try {
-		const downloadsDocument = await collection.findOne({ title: 'downloads' });
+		const downloadsDocument = await collection.findOne({ title: 'downloads' }, { projection: { _id: 0 } });
 
 		let basic_downloads = downloadsDocument.basic_downloads;
 		let update_downloads = downloadsDocument.update_downloads;
@@ -1174,7 +1169,7 @@ router.get(`${apiVersion}/downloads`, async ({ env, req }) => {
 });
 
 // /v1/downloads/community-apps
-router.get(`${apiVersion}/downloads/community-apps`, async ({ env, req }) => {
+router.get(`${apiVersion}/downloads/community-apps`, async () => {
 	return new Response(
 		JSON.stringify({
 			error: {
@@ -1187,7 +1182,7 @@ router.get(`${apiVersion}/downloads/community-apps`, async ({ env, req }) => {
 	);
 });
 
-router.post(`${apiVersion}/downloads/community-apps`, async ({ env, req }) => {
+router.post(`${apiVersion}/downloads/community-apps`, async () => {
 	return new Response(
 		JSON.stringify({
 			error: {
@@ -1205,13 +1200,10 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 	const uuid = req.params.uuid;
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.APPS_COLLECTION);
-	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
-	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.APPS_COLLECTION);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
 	try {
-		const app = await collection.findOne({ uuid: uuid });
-		const app2 = await collection2.findOne({ uuid: uuid });
+		const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 		if (!app) {
 			return new Response(
@@ -1250,58 +1242,30 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 	const uuid = req.params.uuid;
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.APPS_COLLECTION);
-	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
-	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.APPS_COLLECTION);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
 	try {
-		const app = await collection.findOne({ uuid: uuid });
-		const app2 = await collection2.findOne({ uuid: uuid });
+		const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 		if (!app) {
-			const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_apps/community_apps.json');
-			const text = await response.text();
-			const communityAppsData = JSONbig.parse(text);
-
-			const app_gd = communityAppsData.apps.find((app) => app.app.uuid == uuid);
-
-			if (!app_gd) {
-				return new Response(
-					JSONbig.stringify({
-						error: {
-							type: 'Not found',
-							status: 404,
-							message: `The app with the '${uuid}' uuid does not exist.`,
-						},
-					}),
-					{ status: 404 }
-				);
-			} else {
-				await collection.insertOne({
-					uuid: uuid,
-					downloads: 1,
-				});
-				let downloads = 1;
-
-				const app_data = {
-					uuid: uuid,
-					downloads: downloads,
-				};
-
-				return new Response(JSON.stringify(app_data));
-			}
+			return new Response(
+				JSONbig.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The app with the '${uuid}' uuid does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
 		} else {
 			let downloads = app.downloads + 1;
 
-			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
-			await collection2.updateOne({ uuid: uuid }, { $set: { downloads } });
+			await apps_collection.updateOne({ uuid: uuid }, { $set: { downloads } });
 
-			const app_data = {
-				uuid: app.uuid,
-				downloads: downloads,
-			};
+			app.downloads = downloads;
 
-			return new Response(JSON.stringify(app_data));
+			return new Response(JSON.stringify(app));
 		}
 	} catch (error) {
 		return new Response(
@@ -1318,7 +1282,7 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 });
 
 // /v1/downloads/community-themes
-router.get(`${apiVersion}/downloads/community-themes`, async ({ env, req }) => {
+router.get(`${apiVersion}/downloads/community-themes`, async () => {
 	return new Response(
 		JSON.stringify({
 			error: {
@@ -1331,7 +1295,7 @@ router.get(`${apiVersion}/downloads/community-themes`, async ({ env, req }) => {
 	);
 });
 
-router.post(`${apiVersion}/downloads/community-themes`, async ({ env, req }) => {
+router.post(`${apiVersion}/downloads/community-themes`, async () => {
 	return new Response(
 		JSON.stringify({
 			error: {
@@ -1349,13 +1313,10 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 	const uuid = req.params.uuid;
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.THEMES_COLLECTION);
-	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
-	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.THEMES_COLLECTION);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
 	try {
-		const theme = await collection.findOne({ uuid: uuid });
-		const theme2 = await collection2.findOne({ uuid: uuid });
+		const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 		if (!theme) {
 			return new Response(
@@ -1394,58 +1355,30 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 	const uuid = req.params.uuid;
 
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const collection = user.mongoClient('mongodb-atlas').db(env.DB).collection(env.THEMES_COLLECTION);
-	const user2 = await login(env.REALM_APPID2, env.REALM_APIKEY2);
-	const collection2 = user2.mongoClient('mongodb-atlas').db(env.DB2).collection(env.THEMES_COLLECTION);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
 	try {
-		const theme = await collection.findOne({ uuid: uuid });
-		const theme2 = await collection2.findOne({ uuid: uuid });
+		const theme = await collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 		if (!theme) {
-			const response = await fetch('https://github.com/Droptop-Four/GlobalData/raw/main/data/community_themes/community_themes.json');
-			const text = await response.text();
-			const communityThemesData = JSONbig.parse(text);
-
-			const theme_gd = communityThemesData.themes.find((theme) => theme.theme.uuid == uuid);
-
-			if (!theme_gd) {
-				return new Response(
-					JSONbig.stringify({
-						error: {
-							type: 'Not found',
-							status: 404,
-							message: `The theme with the '${uuid}' uuid does not exist.`,
-						},
-					}),
-					{ status: 404 }
-				);
-			} else {
-				await collection.insertOne({
-					uuid: uuid,
-					downloads: 1,
-				});
-				let downloads = 1;
-
-				const theme_data = {
-					uuid: uuid,
-					downloads: downloads,
-				};
-
-				return new Response(JSON.stringify(theme_data));
-			}
+			return new Response(
+				JSONbig.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The theme with the '${uuid}' uuid does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
 		} else {
 			let downloads = theme.downloads + 1;
 
 			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
-			await collection2.updateOne({ uuid: uuid }, { $set: { downloads } });
 
-			const theme_data = {
-				uuid: theme.uuid,
-				downloads: downloads,
-			};
+			theme.downloads = downloads;
 
-			return new Response(JSON.stringify(theme_data));
+			return new Response(JSON.stringify(theme));
 		}
 	} catch (error) {
 		return new Response(
@@ -1472,9 +1405,11 @@ router.get(`${apiVersion}/ping`, () => {
 });
 
 // /v1/version
-router.get(`${apiVersion}/version`, async () => {
-	const response = await fetch('https://raw.githubusercontent.com/Droptop-Four/GlobalData/main/data/version.json');
-	const versionData = await response.json();
+router.get(`${apiVersion}/version`, async ({ env }) => {
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const version_collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.VERSION_COLLECTION);
+
+	const versionData = await version_collection.findOne({ title: 'version' }, { projection: { _id: 0 } });
 
 	return new Response(JSON.stringify(versionData));
 });
