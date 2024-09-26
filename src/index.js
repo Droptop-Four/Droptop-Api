@@ -542,7 +542,7 @@ router.get(`${apiVersion}/community-apps/`, async ({ env }) => {
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
 	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const communityAppsData = await apps_collection.find({});
+	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
 
 	return new Response(JSONbig.stringify(communityAppsData));
 });
@@ -567,7 +567,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
 	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
 
-	const app = await apps_collection.findOne({ id: Number(id) });
+	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
 
 	if (!app) {
 		return new Response(
