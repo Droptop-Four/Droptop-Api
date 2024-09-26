@@ -1411,7 +1411,7 @@ router.get(`${apiVersion}/version`, async ({ env }) => {
 
 	const versionData = await version_collection.findOne({ title: 'version' }, { projection: { _id: 0 } });
 
-	return new Response(JSON.stringify(versionData));
+	return new Response(JSON.stringify(versionData.base));
 });
 
 router.any('*', () => {
