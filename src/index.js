@@ -1,5 +1,4 @@
 import { Router } from '@tsndr/cloudflare-worker-router';
-const JSONbig = require('json-bigint');
 import { Toucan } from 'toucan-js';
 
 import endpoints from './enpoints';
@@ -544,7 +543,7 @@ router.get(`${apiVersion}/community-apps/`, async ({ env }) => {
 
 	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
 
-	return new Response(JSONbig.stringify(communityAppsData));
+	return new Response(JSON.stringify(communityAppsData));
 });
 
 // /v1/community-apps/[id]
@@ -553,7 +552,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 
 	if (isNaN(id)) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -571,7 +570,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -582,7 +581,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app));
+	return new Response(JSON.stringify(app));
 });
 
 // /v1/community-apps/[id]/download
@@ -591,7 +590,7 @@ router.get(`${apiVersion}/community-apps/:id/download`, async ({ env, req }) => 
 
 	if (isNaN(id)) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -609,7 +608,7 @@ router.get(`${apiVersion}/community-apps/:id/download`, async ({ env, req }) => 
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -652,7 +651,7 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ env, req }) => {
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -663,7 +662,7 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ env, req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app));
+	return new Response(JSON.stringify(app));
 });
 
 // /v1/community-apps/id/[id]/download
@@ -690,7 +689,7 @@ router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ env, req }) 
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -722,7 +721,7 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ env, req }) => {
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -733,7 +732,7 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ env, req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app));
+	return new Response(JSON.stringify(app));
 });
 
 // /v1/community-apps/name/[name]/download
@@ -749,7 +748,7 @@ router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ env, req
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -779,7 +778,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ env, req }) => {
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -790,7 +789,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ env, req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(app));
+	return new Response(JSON.stringify(app));
 });
 
 // /v1/community-apps/uuid/[uuid]/download
@@ -804,7 +803,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req
 
 	if (!app) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -860,7 +859,7 @@ router.get(`${apiVersion}/community-themes/`, async ({ env }) => {
 
 	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
 
-	return new Response(JSONbig.stringify(communityThemesData));
+	return new Response(JSON.stringify(communityThemesData));
 });
 
 // /v1/community-themes/[id]
@@ -869,7 +868,7 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ env, req }) => {
 
 	if (isNaN(id)) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -887,7 +886,7 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ env, req }) => {
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -898,7 +897,7 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ env, req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme));
+	return new Response(JSON.stringify(theme));
 });
 
 // /v1/community-themes/[id]/download
@@ -907,7 +906,7 @@ router.get(`${apiVersion}/community-themes/:id/download`, async ({ env, req }) =
 
 	if (isNaN(id)) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -925,7 +924,7 @@ router.get(`${apiVersion}/community-themes/:id/download`, async ({ env, req }) =
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -950,7 +949,7 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ env, req }) => {
 
 	if (isNaN(id)) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -968,7 +967,7 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ env, req }) => {
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -979,7 +978,7 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ env, req }) => {
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme));
+	return new Response(JSON.stringify(theme));
 });
 
 // /v1/community-themes/id/[id]/download
@@ -988,7 +987,7 @@ router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ env, req }
 
 	if (isNaN(id)) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Invalid id',
 					status: 400,
@@ -1006,7 +1005,7 @@ router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ env, req }
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -1038,7 +1037,7 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ env, req }) => 
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -1049,7 +1048,7 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ env, req }) => 
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme));
+	return new Response(JSON.stringify(theme));
 });
 
 // /v1/community-themes/name/[name]/download
@@ -1065,7 +1064,7 @@ router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ env, r
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -1095,7 +1094,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ env, req }) => 
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -1106,7 +1105,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ env, req }) => 
 		);
 	}
 
-	return new Response(JSONbig.stringify(theme));
+	return new Response(JSON.stringify(theme));
 });
 
 // /v1/community-themes/uuid/[uuid]/download
@@ -1120,7 +1119,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ env, r
 
 	if (!theme) {
 		return new Response(
-			JSONbig.stringify({
+			JSON.stringify({
 				error: {
 					type: 'Not found',
 					status: 404,
@@ -1249,7 +1248,7 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 
 		if (!app) {
 			return new Response(
-				JSONbig.stringify({
+				JSON.stringify({
 					error: {
 						type: 'Not found',
 						status: 404,
@@ -1362,7 +1361,7 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 
 		if (!theme) {
 			return new Response(
-				JSONbig.stringify({
+				JSON.stringify({
 					error: {
 						type: 'Not found',
 						status: 404,
@@ -1439,6 +1438,7 @@ export default {
 			return await router.handle(request, env, ctx);
 		} catch (error) {
 			sentry.captureException(error);
+			console.error(error);
 			console.error(error.message);
 			return new Response(
 				JSON.stringify({
