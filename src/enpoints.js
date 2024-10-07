@@ -26,8 +26,18 @@ const enpoints = [
 	},
 	{
 		method: 'GET',
+		path: '/v1/community-apps/[id]/download',
+		description: 'Downloads the Droptop Four community app with the [id] id',
+	},
+	{
+		method: 'GET',
 		path: '/v1/community-apps/id/[id]',
 		description: 'Returns the Droptop Four community app with the [id] id',
+	},
+	{
+		method: 'GET',
+		path: '/v1/community-apps/id/[id]/download',
+		description: 'Downloads the Droptop Four community app with the [id] id',
 	},
 	{
 		method: 'GET',
@@ -36,8 +46,23 @@ const enpoints = [
 	},
 	{
 		method: 'GET',
+		path: '/v1/community-apps/name/[name]/download',
+		description: 'Downloads the Droptop Four community app with the [name] name',
+	},
+	{
+		method: 'GET',
 		path: '/v1/community-apps/uuid/[uuid]',
 		description: 'Returns the Droptop Four community app with the [uuid] uuid',
+	},
+	{
+		method: 'GET',
+		path: '/v1/community-apps/uuid/[uuid]/download',
+		description: 'Downloads the Droptop Four community app with the [uuid] uuid',
+	},
+	{
+		method: 'GET',
+		path: 'v1/community-creations',
+		description: 'Returns all Droptop Four community apps & themes',
 	},
 	{
 		method: 'GET',
@@ -51,8 +76,18 @@ const enpoints = [
 	},
 	{
 		method: 'GET',
+		path: '/v1/community-themes/[id]/download',
+		description: 'Downloads the Droptop Four community theme with the [id] id',
+	},
+	{
+		method: 'GET',
 		path: '/v1/community-themes/id/[id]',
 		description: 'Returns the Droptop Four community theme with the [id] id',
+	},
+	{
+		method: 'GET',
+		path: '/v1/community-themes/id/[id]/download',
+		description: 'Downloads the Droptop Four community theme with the [id] id',
 	},
 	{
 		method: 'GET',
@@ -61,8 +96,18 @@ const enpoints = [
 	},
 	{
 		method: 'GET',
+		path: '/v1/community-themes/name/[name]/download',
+		description: 'Downloads the Droptop Four community theme with the [name] name',
+	},
+	{
+		method: 'GET',
 		path: '/v1/community-themes/uuid/[uuid]',
 		description: 'Returns the Droptop Four community theme with the [uuid] uuid',
+	},
+	{
+		method: 'GET',
+		path: '/v1/community-themes/uuid/[uuid]/download',
+		description: 'Downloads the Droptop Four community theme with the [uuid] uuid',
 	},
 	{
 		method: 'GET',
@@ -71,28 +116,28 @@ const enpoints = [
 	},
 	{
 		method: 'GET',
-		path: 'v1/downlaods/community-apps/[uuid]',
+		path: 'v1/downloads/community-apps/[uuid]',
 		description: 'Returns the number of downloads of the Droptop Four community app with the [uuid] uuid',
 	},
 	{
 		method: 'POST',
-		path: 'v1/downlaods/community-apps/[uuid]',
-		description: 'Adds one to the number of downlaods of the Droptop Four community app with the [uuid] uuid',
+		path: 'v1/downloads/community-apps/[uuid]',
+		description: 'Adds one to the number of downloads of the Droptop Four community app with the [uuid] uuid',
 	},
 	{
 		method: 'GET',
-		path: 'v1/downlaods/community-themes/[uuid]',
+		path: 'v1/downloads/community-themes/[uuid]',
 		description: 'Returns the number of downloads of the Droptop Four community theme with the [uuid] uuid',
 	},
 	{
 		method: 'POST',
-		path: 'v1/downlaods/community-themes/[uuid]',
-		description: 'Adds one to the number of downlaods of the Droptop Four community theme with the [uuid] uuid',
+		path: 'v1/downloads/community-themes/[uuid]',
+		description: 'Adds one to the number of downloads of the Droptop Four community theme with the [uuid] uuid',
 	},
 	{
 		method: 'GET',
 		path: 'v1/droptop',
-		description: 'Returns data that Droptop needs'
+		description: 'Returns data that Droptop needs',
 	},
 	{
 		method: 'GET',

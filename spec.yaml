@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   description: 'This is the Droptop Four official API made with Cloudflare Workers.'
-  version: 1.0.1
+  version: 1.0.2
   title: Droptop API
   termsOfService: https://droptopfour.com/terms/
   contact:
@@ -566,6 +566,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /community-creations:
+    get:
+      tags:
+        - Community Apps
+        - Community Themes
+      summary: 'Gets all Droptop Apps & Themes'
+      description: 'Gets all Droptop Apps & Themes'
+      security: []
+      operationId: getCommunityCreations
+      responses:
+        '200':
+          description: 'Succesful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityCreations'
+
   /community-themes:
     get:
       tags:
@@ -1109,65 +1126,62 @@ components:
       type: object
       description: 'The Community App object'
       properties:
-        App:
-          type: object
-          properties:
-            id:
-              type: integer
-              description: 'The id of the Community App'
-            uuid:
-              type: string
-              format: uuid
-              description: 'The uuid of the Community App'
-            name:
-              type: string
-              description: 'The name of the Community App'
-            author:
-              type: string
-              description: 'The author of the Community App'
-            author_id:
-              type: integer
-              description: "The author's discord id"
-            author_link:
-              type: string
-              format: hostname
-              description: "The author's link"
-            desc:
-              type: string
-              description: 'The description of the Community App'
-            version:
-              type: string
-              description: 'The version of the Community App'
-            official_link:
-              type: string
-              format: hostname
-              description: 'The official link of the Community App'
-            direct_download_link:
-              type: string
-              format: hostname
-              description: 'The direct download link of the Community App'
-            secondary_link:
-              type: string
-              format: hostname
-              description: 'The secondary link of the Community App'
-            image_url:
-              type: string
-              format: hostname
-              description: 'The image url of the Community App'
-            authorised_members:
-              type: array
-              description: 'The array of authorised discord ids that can edit the app'
-              items:
-                type: integer
-                description: 'The discord id of an autorised user'
-            hidden:
-              type: integer
-              description: 'If the app is hidden from the public'
-            changelog:
-              type: array
-              description: 'The changelog of the Community App'
-              items:
-                $ref: '#/components/schemas/CommunityChangenote'
+        id:
+          type: integer
+          description: 'The id of the Community App'
+        uuid:
+          type: string
+          format: uuid
+          description: 'The uuid of the Community App'
+        name:
+          type: string
+          description: 'The name of the Community App'
+        author:
+          type: string
+          description: 'The author of the Community App'
+        author_id:
+          type: integer
+          description: "The author's discord id"
+        author_link:
+          type: string
+          format: hostname
+          description: "The author's link"
+        desc:
+          type: string
+          description: 'The description of the Community App'
+        version:
+          type: string
+          description: 'The version of the Community App'
+        official_link:
+          type: string
+          format: hostname
+          description: 'The official link of the Community App'
+        direct_download_link:
+          type: string
+          format: hostname
+          description: 'The direct download link of the Community App'
+        secondary_link:
+          type: string
+          format: hostname
+          description: 'The secondary link of the Community App'
+        image_url:
+          type: string
+          format: hostname
+          description: 'The image url of the Community App'
+        authorised_members:
+          type: array
+          description: 'The array of authorised discord ids that can edit the app'
+          items:
+            type: integer
+            description: 'The discord id of an autorised user'
+        hidden:
+          type: integer
+          description: 'If the app is hidden from the public'
+        changelog:
+          type: array
+          description: 'The changelog of the Community App'
+          items:
+            $ref: '#/components/schemas/CommunityChangenote'
 
     CommunityApps:
       type: object
@@ -1189,6 +1203,15 @@ components:
         changenotes:
           type: string
           description: 'The changenotes of the specific version'
+    
+    CommunityCreations:
+      type: object
+      description: 'The Community Creations object'
+      properties:
+        apps:
+          $ref: '#/components/schemas/CommunityApps'
+        themes:
+          $ref: '#/components/schemas/CommunityThemes'
 
     CommunityDownload:
       type: object
@@ -1203,65 +1226,62 @@ components:
       type: object
       description: 'The Community Theme object'
       properties:
-        Theme:
-          type: object
-          properties:
-            id:
-              type: integer
-              description: 'The id of the Community Theme'
-            uuid:
-              type: string
-              format: uuid
-              description: 'The uuid of the Community Theme'
-            name:
-              type: string
-              description: 'The name of the Community Theme'
-            author:
-              type: string
-              description: 'The author of the Community Theme'
-            author_id:
-              type: integer
-              description: "The author's discord id"
-            author_link:
-              type: string
-              format: hostname
-              description: "The author's link"
-            desc:
-              type: string
-              description: 'The description of the Community Theme'
-            version:
-              type: string
-              description: 'The version of the Community Theme'
-            official_link:
-              type: string
-              format: hostname
-              description: 'The official link of the Community Theme'
-            direct_download_link:
-              type: string
-              format: hostname
-              description: 'The direct download link of the Community Theme'
-            secondary_link:
-              type: string
-              format: hostname
-              description: 'The secondary link of the Community Theme'
-            image_url:
-              type: string
-              format: hostname
-              description: 'The image url of the Community Theme'
-            authorised_members:
-              type: array
-              description: 'The array of authorised discord ids that can edit the theme'
-              items:
-                type: integer
-                description: 'The discord id of an autorised user'
-            hidden:
-              type: integer
-              description: 'If the app is hidden from the public'
-            changelog:
-              type: array
-              description: 'The changelog of the Community Theme'
-              items:
-                $ref: '#/components/schemas/CommunityChangenote'
+        id:
+          type: integer
+          description: 'The id of the Community Theme'
+        uuid:
+          type: string
+          format: uuid
+          description: 'The uuid of the Community Theme'
+        name:
+          type: string
+          description: 'The name of the Community Theme'
+        author:
+          type: string
+          description: 'The author of the Community Theme'
+        author_id:
+          type: integer
+          description: "The author's discord id"
+        author_link:
+          type: string
+          format: hostname
+          description: "The author's link"
+        desc:
+          type: string
+          description: 'The description of the Community Theme'
+        version:
+          type: string
+          description: 'The version of the Community Theme'
+        official_link:
+          type: string
+          format: hostname
+          description: 'The official link of the Community Theme'
+        direct_download_link:
+          type: string
+          format: hostname
+          description: 'The direct download link of the Community Theme'
+        secondary_link:
+          type: string
+          format: hostname
+          description: 'The secondary link of the Community Theme'
+        image_url:
+          type: string
+          format: hostname
+          description: 'The image url of the Community Theme'
+        authorised_members:
+          type: array
+          description: 'The array of authorised discord ids that can edit the theme'
+          items:
+            type: integer
+            description: 'The discord id of an autorised user'
+        hidden:
+          type: integer
+          description: 'If the app is hidden from the public'
+        changelog:
+          type: array
+          description: 'The changelog of the Community Theme'
+          items:
+            $ref: '#/components/schemas/CommunityChangenote'
 
     CommunityThemes:
       type: object

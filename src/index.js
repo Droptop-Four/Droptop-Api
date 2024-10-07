@@ -51,50 +51,6 @@ router.get(`${apiVersion}`, () => {
 	return new Response(JSON.stringify(endpoints));
 });
 
-// /v1/droptop
-router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
-	try {
-		const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-		const version_collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.VERSION_COLLECTION);
-
-		const versionData = await version_collection.findOne({ title: 'version' }, { projection: { _id: 0 } });
-
-		const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-		const appsData = await apps_collection.find({}, { projection: { _id: 0 } });
-
-		const appVersions = {};
-		let appIndex = 1;
-		for (let param in req.query) {
-			const app = appsData.find((app) => app.name.toLowerCase() == req.query[param].toLowerCase());
-			if (app) {
-				appVersions[`CustomApp${appIndex}`] = app.version;
-			} else {
-				appVersions[`CustomApp${appIndex}`] = '0';
-			}
-			appIndex++;
-		}
-
-		const response = {
-			version: versionData.base.version,
-			miniversion: versionData.base.miniversion,
-			...appVersions,
-		};
-
-		return new Response(JSON.stringify(response));
-	} catch (error) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Something went wrong',
-					status: 500,
-					message: error.message,
-				},
-			}),
-			{ status: 500 }
-		);
-	}
-});
-
 // /v1/announcements
 router.get(`${apiVersion}/announcements`, async ({ env }) => {
 	try {
@@ -822,6 +778,23 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req
 	});
 });
 
+// /v1/community-creations
+router.get(`${apiVersion}/community-creations`, async ({ env, req }) => {
+	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+
+	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
+	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
+
+	const creations = {
+		apps: communityAppsData,
+		themes: communityThemesData
+	}
+
+	return new Response(JSON.stringify(creations));
+})
+
 // /v1/community-themes/id
 router.get(`${apiVersion}/community-themes/id`, async () => {
 	return new Response(null, {
@@ -1357,7 +1330,7 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
 
 	try {
-		const theme = await collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
 
 		if (!theme) {
 			return new Response(
@@ -1373,12 +1346,56 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 		} else {
 			let downloads = theme.downloads + 1;
 
-			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
+			await themes_collection.updateOne({ uuid: uuid }, { $set: { downloads } });
 
 			theme.downloads = downloads;
 
 			return new Response(JSON.stringify(theme));
 		}
+	} catch (error) {
+		return new Response(
+			JSON.stringify({
+				error: {
+					type: 'Something went wrong',
+					status: 500,
+					message: error.message,
+				},
+			}),
+			{ status: 500 }
+		);
+	}
+});
+
+// /v1/droptop
+router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
+	try {
+		const user = await login(env.REALM_APPID, env.REALM_APIKEY);
+		const version_collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.VERSION_COLLECTION);
+
+		const versionData = await version_collection.findOne({ title: 'version' }, { projection: { _id: 0 } });
+
+		const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+		const appsData = await apps_collection.find({}, { projection: { _id: 0 } });
+
+		const appVersions = {}; 
+		let appIndex = 1;
+		for (let param in req.query) {
+			const app = appsData.find((app) => app.name.toLowerCase() == req.query[param].toLowerCase());
+			if (app) {
+				appVersions[`CustomApp${appIndex}`] = app.version;
+			} else {
+				appVersions[`CustomApp${appIndex}`] = '0';
+			}
+			appIndex++;
+		}
+
+		const response = {
+			version: versionData.base.version,
+			miniversion: versionData.base.miniversion,
+			...appVersions,
+		};
+
+		return new Response(JSON.stringify(response));
 	} catch (error) {
 		return new Response(
 			JSON.stringify({
