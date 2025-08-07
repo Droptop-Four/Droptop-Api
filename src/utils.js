@@ -70,3 +70,13 @@ const handleDownloadById = async (env, id, findFunction, itemType, dbName, colle
         return handleMongoError(error);
     }
 };
+
+export {
+    createErrorResponse,
+    validateNumericId,
+    checkAuthentication,
+    createGitHubHeaders,
+    handleMongoError,
+    handleFindById,
+    handleDownloadById
+}

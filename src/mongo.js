@@ -15,6 +15,8 @@ function getClient(uri) {
         retryReads: true,
     });
 
+    console.log(clientInstance);
+
     return clientInstance;
 }
 
