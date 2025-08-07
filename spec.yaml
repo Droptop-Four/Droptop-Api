@@ -27,7 +27,7 @@ tags:
   - name: Community Apps
     description: About Droptop Community Apps
   - name: Community Themes
-    description: About Droptop Community Apps
+    description: About Droptop Community Themes
   - name: Droptop
     description: About Droptop
   - name: Misc
@@ -78,7 +78,7 @@ paths:
         - Droptop
       summary: 'Adds a new announcements'
       description: 'Adds a new announcements'
-      security: 
+      security:
         - ApiKeyAuth: []
       operationId: postAnnouncements
       requestBody:
@@ -110,7 +110,7 @@ paths:
         - Droptop
       summary: 'Deletes the Droptop Four announcements'
       description: 'Deletes the Droptop Four announcements'
-      security: 
+      security:
         - ApiKeyAuth: []
       operationId: deleteAnnouncements
       responses:
@@ -148,7 +148,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CompleteAnnouncements'
+                $ref: '#/components/schemas/PlatformAnnouncement'
         '500':
           description: 'Error'
           content:
@@ -681,14 +681,14 @@ paths:
     get:
       tags:
         - Community Themes
-      summary: 'Get a specific Community App by id'
-      description: 'Gets a specific Community App by id'
+      summary: 'Get a specific Community Theme by id'
+      description: 'Gets a specific Community Theme by id'
       security: []
       operationId: getCommunityThemesById
       parameters:
         - name: id
           in: path
-          description: 'The id of the Community App to get'
+          description: 'The id of the Community Theme to get'
           required: true
           schema:
             $ref: '#/components/schemas/Id'
@@ -698,7 +698,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommunityApp'
+                $ref: '#/components/schemas/CommunityTheme'
         '400':
           description: 'Invalid id'
           content:
@@ -706,7 +706,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: 'App not found'
+          description: 'Theme not found'
           content:
             application/json:
               schema:
@@ -716,20 +716,20 @@ paths:
     get:
       tags:
         - Community Themes
-      summary: 'Downloads a specific Community App by id'
-      description: 'Downloads a specific Community App by id'
+      summary: 'Downloads a specific Community Theme by id'
+      description: 'Downloads a specific Community Theme by id'
       security: []
       operationId: downloadCommunityThemesById
       parameters:
         - name: id
           in: path
-          description: 'The id of the Community App to get'
+          description: 'The id of the Community Theme to get'
           required: true
           schema:
             $ref: '#/components/schemas/Id'
       responses:
         '303':
-          description: 'Redirects to the direct download link of the Community App'
+          description: 'Redirects to the direct download link of the Community Theme'
         '400':
           description: 'Invalid id'
           content:
@@ -737,7 +737,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: 'App not found'
+          description: 'Theme not found'
           content:
             application/json:
               schema:
@@ -759,14 +759,14 @@ paths:
     get:
       tags:
         - Community Themes
-      summary: 'Get a specific Community App by name'
-      description: 'Gets a specific Community App by name'
+      summary: 'Get a specific Community Theme by name'
+      description: 'Gets a specific Community Theme by name'
       security: []
       operationId: getCommunityThemesByName
       parameters:
         - name: name
           in: path
-          description: 'The name of the Community App to get'
+          description: 'The name of the Community Theme to get'
           required: true
           schema:
             $ref: '#/components/schemas/Name'
@@ -776,9 +776,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommunityApp'
+                $ref: '#/components/schemas/CommunityTheme'
         '404':
-          description: 'App not found'
+          description: 'Theme not found'
           content:
             application/json:
               schema:
@@ -788,22 +788,22 @@ paths:
     get:
       tags:
         - Community Themes
-      summary: 'Downloads a specific Community App by name'
-      description: 'Downloads a specific Community App by name'
+      summary: 'Downloads a specific Community Theme by name'
+      description: 'Downloads a specific Community Theme by name'
       security: []
       operationId: downloadCommunityThemesByName
       parameters:
         - name: name
           in: path
-          description: 'The name of the Community App to get'
+          description: 'The name of the Community Theme to get'
           required: true
           schema:
             $ref: '#/components/schemas/Name'
       responses:
         '303':
-          description: 'Redirects to the direct download link of the Community App'
+          description: 'Redirects to the direct download link of the Community Theme'
         '404':
-          description: 'App not found'
+          description: 'Theme not found'
           content:
             application/json:
               schema:
@@ -825,14 +825,14 @@ paths:
     get:
       tags:
         - Community Themes
-      summary: 'Get a specific Community App by uuid'
-      description: 'Gets a specific Community App by uuid'
+      summary: 'Get a specific Community Theme by uuid'
+      description: 'Gets a specific Community Theme by uuid'
       security: []
       operationId: getCommunityThemesByUuid
       parameters:
         - name: uuid
           in: path
-          description: 'The uuid of the Community App to get'
+          description: 'The uuid of the Community Theme to get'
           required: true
           schema:
             $ref: '#/components/schemas/Uuid'
@@ -842,9 +842,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommunityApp'
+                $ref: '#/components/schemas/CommunityTheme'
         '404':
-          description: 'App not found'
+          description: 'Theme not found'
           content:
             application/json:
               schema:
@@ -854,22 +854,22 @@ paths:
     get:
       tags:
         - Community Themes
-      summary: 'Downloads a specific Community App by uuid'
-      description: 'Downloads a specific Community App by uuid'
+      summary: 'Downloads a specific Community Theme by uuid'
+      description: 'Downloads a specific Community Theme by uuid'
       security: []
       operationId: downloadCommunityThemesByUuid
       parameters:
         - name: uuid
           in: path
-          description: 'The uuid of the Community App to get'
+          description: 'The uuid of the Community Theme to get'
           required: true
           schema:
             $ref: '#/components/schemas/Uuid'
       responses:
         '303':
-          description: 'Redirects to the direct download link of the Community App'
+          description: 'Redirects to the direct download link of the Community Theme'
         '404':
-          description: 'App not found'
+          description: 'Theme not found'
           content:
             application/json:
               schema:
@@ -892,6 +892,66 @@ paths:
                 $ref: '#/components/schemas/Downloads'
         '500':
           description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /downloads/community-apps:
+    get:
+      tags:
+        - Community Apps
+      summary: 'Returns error - UUID required'
+      description: 'Returns error message indicating that a UUID is required'
+      security: []
+      operationId: getDownloadsCommunityAppsError
+      responses:
+        '400':
+          description: 'Bad Request - UUID required'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Community Apps
+      summary: 'Returns error - UUID required'
+      description: 'Returns error message indicating that a UUID is required'
+      security: []
+      operationId: postDownloadsCommunityAppsError
+      responses:
+        '400':
+          description: 'Bad Request - UUID required'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /downloads/community-themes:
+    get:
+      tags:
+        - Community Themes
+      summary: 'Returns error - UUID required'
+      description: 'Returns error message indicating that a UUID is required'
+      security: []
+      operationId: getDownloadsCommunityThemesError
+      responses:
+        '400':
+          description: 'Bad Request - UUID required'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Community Themes
+      summary: 'Returns error - UUID required'
+      description: 'Returns error message indicating that a UUID is required'
+      security: []
+      operationId: postDownloadsCommunityThemesError
+      responses:
+        '400':
+          description: 'Bad Request - UUID required'
           content:
             application/json:
               schema:
@@ -936,8 +996,7 @@ paths:
         - Community Apps
       summary: 'Adds one to the number of downloads of a Community App'
       description: 'Adds one to the number of downloads of a Community App'
-      security:
-        - ApiKeyAuth: []
+      security: []
       operationId: postDownloadsCommunityApp
       parameters:
         - name: uuid
@@ -999,8 +1058,7 @@ paths:
         - Community Themes
       summary: 'Adds one to the number of downloads of a Community Theme'
       description: 'Adds one to the number of downloads of a Community Theme'
-      security:
-        - ApiKeyAuth: []
+      security: []
       operationId: postDownloadsCommunityTheme
       parameters:
         - name: uuid
@@ -1203,15 +1261,21 @@ components:
         changenotes:
           type: string
           description: 'The changenotes of the specific version'
-    
+
     CommunityCreations:
       type: object
       description: 'The Community Creations object'
       properties:
         apps:
-          $ref: '#/components/schemas/CommunityApps'
+          type: array
+          description: 'The array of all Community Apps'
+          items:
+            $ref: '#/components/schemas/CommunityApp'
         themes:
-          $ref: '#/components/schemas/CommunityThemes'
+          type: array
+          description: 'The array of all Community Themes'
+          items:
+            $ref: '#/components/schemas/CommunityTheme'
 
     CommunityDownload:
       type: object
@@ -1287,7 +1351,7 @@ components:
       type: object
       description: 'The Community Themes object'
       properties:
-        apps:
+        themes:
           type: array
           description: 'The array of all Community Themes'
           items:
@@ -1310,6 +1374,9 @@ components:
         update_downloads:
           type: integer
           description: 'The number of downloads of the Droptop Four update'
+        supporter_downloads:
+          type: integer
+          description: 'The number of downloads of the Droptop Four supporter version'
 
     DroptopData:
       type: object
@@ -1444,4 +1511,4 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: Authentication
+      name: authorization

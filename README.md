@@ -83,6 +83,7 @@
 </p><br><br>
 
 ### Use the API
+
 1. `npm install` to install all dependencies
 2. Create `.dev.vars` for the secrets
 3. `wrangler dev` to start the worker with secrets

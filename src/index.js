@@ -1,8 +1,18 @@
 import { Router } from '@tsndr/cloudflare-worker-router';
 import { Toucan } from 'toucan-js';
 
-import endpoints from './enpoints';
-import login from './realm_login';
+import endpoints from './endpoints';
+import { createErrorResponse, validateNumericId, checkAuthentication, createGitHubHeaders, handleMongoError, handleFindById, handleDownloadById } from './utils';
+import {
+	findAppById,
+	findAppByUuid,
+	findAllApps,
+	findThemeById,
+	findThemeByUuid,
+	findAllThemes,
+	updateDownloads,
+	findOneDocument
+} from './mongo';
 
 const router = new Router();
 const apiVersion = '/v1';
@@ -10,40 +20,9 @@ const apiVersion = '/v1';
 // Enabling build in CORS support
 router.cors();
 
-// router.debug();
-
-// Register global middleware
-// router.use(({ env, req }) => {
-// 	// Intercept if token doesn't match
-// 	// console.log(req);
-// 	if (req.method == 'POST' && req.url.includes('announcements')) {
-// 		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
-// 			return new Response(
-// 				JSON.stringify({
-// 					error: {
-// 						type: 'Unauthorizedt',
-// 						status: 401,
-// 						message: 'You need to specify a valid API KEY.',
-// 					},
-// 				}),
-// 				{ status: 401 }
-// 			);
-// 		}
-// 	}
-// });
-
 // '/'
 router.get('/', () => {
-	return new Response(
-		JSON.stringify({
-			error: {
-				type: 'Bad Request',
-				status: 400,
-				message: 'You need to specify the api version.',
-			},
-		}),
-		{ status: 400 }
-	);
+	return createErrorResponse('Bad Request', 400, 'You need to specify the api version.');
 });
 
 // /v1/
@@ -59,44 +38,20 @@ router.get(`${apiVersion}/announcements`, async ({ env }) => {
 
 		return new Response(JSON.stringify(announcements));
 	} catch (error) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Something went wrong',
-					status: 500,
-					message: error.message,
-				},
-			}),
-			{ status: 500 }
-		);
+		return createErrorResponse('Something went wrong', 500, error.message);
 	}
 });
 
 router.post(
 	`${apiVersion}/announcements`,
 	async ({ env, req }) => {
-		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: 'Unauthorizedt',
-						status: 401,
-						message: 'You need to specify a valid API KEY.',
-					},
-				}),
-				{ status: 401 }
-			);
-		}
+		const authError = checkAuthentication(req, env);
+		if (authError) return authError;
 	},
 	async ({ env, req }) => {
 		let new_announcement = await req.json();
 
-		let headers = {
-			Accept: 'application/vnd.github+json',
-			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
-			'X-GitHub-Api-Version': '2022-11-28',
-			'User-Agent': 'droptop-api',
-		};
+		const headers = createGitHubHeaders(env.GITHUB_APIKEY);
 
 		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
 
@@ -120,19 +75,10 @@ router.post(
 
 		const message = await response.json();
 
-		if (response.status == 200) {
+		if (response.status === 200) {
 			return new Response(JSON.stringify(new_announcement));
 		} else {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: response.statusText,
-						status: response.status,
-						message: message,
-					},
-				}),
-				{ status: response.status }
-			);
+			return createErrorResponse(response.statusText, response.status, message);
 		}
 	}
 );
@@ -140,18 +86,8 @@ router.post(
 router.delete(
 	`${apiVersion}/announcements`,
 	async ({ env, req }) => {
-		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: 'Unauthorizedt',
-						status: 401,
-						message: 'You need to specify a valid API KEY.',
-					},
-				}),
-				{ status: 401 }
-			);
-		}
+		const authError = checkAuthentication(req, env);
+		if (authError) return authError;
 	},
 	async ({ env }) => {
 		let empty_obj = {
@@ -169,12 +105,7 @@ router.delete(
 			},
 		};
 
-		let headers = {
-			Accept: 'application/vnd.github+json',
-			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
-			'X-GitHub-Api-Version': '2022-11-28',
-			'User-Agent': 'droptop-api',
-		};
+		let headers = createGitHubHeaders(env.GITHUB_APIKEY);
 
 		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
 
@@ -199,19 +130,10 @@ router.delete(
 
 		const message = await response.json();
 
-		if (response.status == 200) {
+		if (response.status === 200) {
 			return new Response(JSON.stringify(empty_obj));
 		} else {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: response.statusText,
-						status: response.status,
-						message: message,
-					},
-				}),
-				{ status: response.status }
-			);
+			return createErrorResponse(response.statusText, response.status, message);
 		}
 	}
 );
@@ -235,43 +157,19 @@ router.get(`${apiVersion}/announcements/:platform`, async ({ env, req }) => {
 router.post(
 	`${apiVersion}/announcements/:platform`,
 	async ({ env, req }) => {
-		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: 'Unauthorizedt',
-						status: 401,
-						message: 'You need to specify a valid API KEY.',
-					},
-				}),
-				{ status: 401 }
-			);
-		}
+		const authError = checkAuthentication(req, env);
+		if (authError) return authError;
 	},
 	async ({ env, req }) => {
 		const platform = decodeURIComponent(req.params.platform);
 
 		if (platform !== 'app' && platform !== 'website') {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: 'Bad Request',
-						status: 400,
-						message: 'You need to specify a correct platform [app, website].',
-					},
-				}),
-				{ status: 400 }
-			);
+			return createErrorResponse('Bad Request', 400, 'You need to specify a correct platform [app, website].');
 		}
 
 		let platform_announcement = await req.json();
 
-		let headers = {
-			Accept: 'application/vnd.github+json',
-			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
-			'X-GitHub-Api-Version': '2022-11-28',
-			'User-Agent': 'droptop-api',
-		};
+		let headers = createGitHubHeaders(env.GITHUB_APIKEY);
 
 		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
 
@@ -309,19 +207,10 @@ router.post(
 
 		const message = await response.json();
 
-		if (response.status == 200) {
+		if (response.status === 200) {
 			return new Response(JSON.stringify(new_announcement));
 		} else {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: response.statusText,
-						status: response.status,
-						message: message,
-					},
-				}),
-				{ status: response.status }
-			);
+			return createErrorResponse(response.statusText, response.status, message);
 		}
 	}
 );
@@ -329,41 +218,17 @@ router.post(
 router.delete(
 	`${apiVersion}/announcements/:platform`,
 	async ({ env, req }) => {
-		if (req.headers.get('authorization') !== env.DROPTOP_APIKEY) {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: 'Unauthorizedt',
-						status: 401,
-						message: 'You need to specify a valid API KEY.',
-					},
-				}),
-				{ status: 401 }
-			);
-		}
+		const authError = checkAuthentication(req, env);
+		if (authError) return authError;
 	},
 	async ({ env, req }) => {
 		const platform = decodeURIComponent(req.params.platform);
 
 		if (platform !== 'app' && platform !== 'website') {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: 'Bad Request',
-						status: 400,
-						message: 'You need to specify a correct platform [app, website].',
-					},
-				}),
-				{ status: 400 }
-			);
+			return createErrorResponse('Bad Request', 400, 'You need to specify a correct platform [app, website].');
 		}
 
-		let headers = {
-			Accept: 'application/vnd.github+json',
-			Authorization: `Bearer ${env.GITHUB_APIKEY}`,
-			'X-GitHub-Api-Version': '2022-11-28',
-			'User-Agent': 'droptop-api',
-		};
+		let headers = createGitHubHeaders(env.GITHUB_APIKEY);
 
 		let url = `https://api.github.com/repos/Droptop-Four/${env.GLOBALDATA_REPO}/contents/data/announcements.json`;
 
@@ -408,19 +273,10 @@ router.delete(
 
 		const message = await response.json();
 
-		if (response.status == 200) {
+		if (response.status === 200) {
 			return new Response(JSON.stringify(new_announcement));
 		} else {
-			return new Response(
-				JSON.stringify({
-					error: {
-						type: response.statusText,
-						status: response.status,
-						message: message,
-					},
-				}),
-				{ status: response.status }
-			);
+			return createErrorResponse(response.statusText, response.status, message);
 		}
 	}
 );
@@ -447,16 +303,7 @@ router.get(`${apiVersion}/changelog/:version`, async ({ req }) => {
 	const changenote = changelogData.changelog.find((entry) => entry.version === version);
 
 	if (!changenote) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The changenote with the '${version}' version does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return createErrorResponse('Not found', 404, `The changenote with the '${version}' version does not exist.`);
 	}
 
 	return new Response(JSON.stringify(changenote));
@@ -494,306 +341,204 @@ router.get(`${apiVersion}/community-apps/uuid`, async () => {
 
 // /v1/community-apps
 router.get(`${apiVersion}/community-apps/`, async ({ env }) => {
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-
-	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
-
-	return new Response(JSON.stringify(communityAppsData));
+	try {
+		const communityAppsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
+		return new Response(JSON.stringify(communityAppsData));
+	} catch (error) {
+		return handleMongoError(error);
+	}
 });
 
 // /v1/community-apps/[id]
 router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 	const id = req.params.id;
 
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
+	const validationError = validateNumericId(id);
+	if (validationError) return validationError;
+
+	try {
+		const app = await findAppById(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, id);
+
+		if (!app) {
+			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
+		}
+
+		return new Response(JSON.stringify(app));
+	} catch (error) {
+		return handleMongoError(error);
 	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-
-	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(JSON.stringify(app));
 });
 
 // /v1/community-apps/[id]/download
 router.get(`${apiVersion}/community-apps/:id/download`, async ({ env, req }) => {
 	const id = req.params.id;
 
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
+	const validationError = validateNumericId(id);
+	if (validationError) return validationError;
+
+	try {
+		const app = await findAppById(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, id);
+
+		if (!app) {
+			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
+		}
+
+		return new Response(null, {
+			status: 303,
+			headers: {
+				Location: app.direct_download_link,
+			},
+		});
+	} catch (error) {
+		return handleMongoError(error);
 	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-
-	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: app.direct_download_link,
-		},
-	});
 });
 
 // /v1/community-apps/id/[id]
 router.get(`${apiVersion}/community-apps/id/:id`, async ({ env, req }) => {
-	const id = req.params.id;
-
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
-	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-
-	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(JSON.stringify(app));
+	return await handleFindById(env, req.params.id, findAppById, 'app', env.CREATIONS_DB, env.APPS_COLLECTION);
 });
 
 // /v1/community-apps/id/[id]/download
 router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ env, req }) => {
-	const id = req.params.id;
-
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
-	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-
-	const app = await apps_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: app.direct_download_link,
-		},
-	});
+	return await handleDownloadById(env, req.params.id, findAppById, 'app', env.CREATIONS_DB, env.APPS_COLLECTION);
 });
 
 // /v1/community-apps/name/[name]
 router.get(`${apiVersion}/community-apps/name/:name`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+	try {
+		const communityAppsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
+		const app = communityAppsData.find((app) => app.name.toLowerCase() === name.toLowerCase());
 
-	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
+		if (!app) {
+			return createErrorResponse('Not found', 404, `The app with the '${name}' name does not exist.`);
+		}
 
-	const app = communityAppsData.find((app) => app.name.toLowerCase() == name.toLowerCase());
-
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the "'${name}' name does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(JSON.stringify(app));
+	} catch (error) {
+		return handleMongoError(error);
 	}
-
-	return new Response(JSON.stringify(app));
 });
 
 // /v1/community-apps/name/[name]/download
 router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+	try {
+		const communityAppsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
 
-	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
+		const app = communityAppsData.find((app) => app.name.toLowerCase() === name.toLowerCase());
 
-	const app = communityAppsData.find((app) => app.name.toLowerCase() == name.toLowerCase());
+		if (!app) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The app with the "'${name}' name does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
+		}
 
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the "'${name}' name does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(null, {
+			status: 303,
+			headers: {
+				Location: app.direct_download_link,
+			},
+		});
+	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
+		throw error;
 	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: app.direct_download_link,
-		},
-	});
 });
 
 // /v1/community-apps/uuid/[uuid]
 router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+	try {
+		const app = await findAppByUuid(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
-	const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		if (!app) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The app with the '${uuid}' uuid does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
+		}
 
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the '${uuid}' uuid does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(JSON.stringify(app));
+	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
+		throw error;
 	}
-
-	return new Response(JSON.stringify(app));
 });
 
 // /v1/community-apps/uuid/[uuid]/download
 router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
+	try {
+		const app = await findAppByUuid(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
-	const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		if (!app) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The app with the '${uuid}' uuid does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
+		}
 
-	if (!app) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The app with the '${uuid}' uuid does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(null, {
+			status: 303,
+			headers: {
+				Location: app.direct_download_link,
+			},
+		});
+	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
+		throw error;
 	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: app.direct_download_link,
-		},
-	});
 });
 
 // /v1/community-creations
-router.get(`${apiVersion}/community-creations`, async ({ env, req }) => {
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+router.get(`${apiVersion}/community-creations`, async ({ env }) => {
+	try {
+		const [communityAppsData, communityThemesData] = await Promise.all([
+			findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION),
+			findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION)
+		]);
 
-	const communityAppsData = await apps_collection.find({}, { projection: { _id: 0 } });
-	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
+		const creations = {
+			apps: communityAppsData,
+			themes: communityThemesData
+		};
 
-	const creations = {
-		apps: communityAppsData,
-		themes: communityThemesData
+		return new Response(JSON.stringify(creations));
+	} catch (error) {
+		return handleMongoError(error);
 	}
-
-	return new Response(JSON.stringify(creations));
-})
+});
 
 // /v1/community-themes/id
 router.get(`${apiVersion}/community-themes/id`, async () => {
@@ -827,355 +572,185 @@ router.get(`${apiVersion}/community-themes/uuid`, async () => {
 
 // /v1/community-themes
 router.get(`${apiVersion}/community-themes/`, async ({ env }) => {
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
-
-	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
-
-	return new Response(JSON.stringify(communityThemesData));
+	try {
+		const communityThemesData = await findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION);
+		return new Response(JSON.stringify(communityThemesData));
+	} catch (error) {
+		return handleMongoError(error);
+	}
 });
 
 // /v1/community-themes/[id]
 router.get(`${apiVersion}/community-themes/:id`, async ({ env, req }) => {
-	const id = req.params.id;
-
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
-	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
-
-	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(JSON.stringify(theme));
+	return await handleFindById(env, req.params.id, findThemeById, 'theme', env.CREATIONS_DB, env.THEMES_COLLECTION);
 });
 
 // /v1/community-themes/[id]/download
 router.get(`${apiVersion}/community-themes/:id/download`, async ({ env, req }) => {
-	const id = req.params.id;
-
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
-	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
-
-	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: theme.direct_download_link,
-		},
-	});
+	return await handleDownloadById(env, req.params.id, findThemeById, 'theme', env.CREATIONS_DB, env.THEMES_COLLECTION);
 });
 
 // /v1/community-themes/id/[id]
 router.get(`${apiVersion}/community-themes/id/:id`, async ({ env, req }) => {
-	const id = req.params.id;
-
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
-	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
-
-	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(JSON.stringify(theme));
+	return await handleFindById(env, req.params.id, findThemeById, 'theme', env.CREATIONS_DB, env.THEMES_COLLECTION);
 });
 
 // /v1/community-themes/id/[id]/download
 router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ env, req }) => {
-	const id = req.params.id;
-
-	if (isNaN(id)) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Invalid id',
-					status: 400,
-					message: `The '${id}' id is not a number.`,
-				},
-			}),
-			{ status: 400 }
-		);
-	}
-
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
-
-	const theme = await themes_collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the '${id}' id does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
-	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: theme.direct_download_link,
-		},
-	});
+	return await handleDownloadById(env, req.params.id, findThemeById, 'theme', env.CREATIONS_DB, env.THEMES_COLLECTION);
 });
 
 // /v1/community-themes/name/[name]
 router.get(`${apiVersion}/community-themes/name/:name`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+	try {
+		const communityThemesData = await findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION);
+		const theme = communityThemesData.find((theme) => theme.name.toLowerCase() === name.toLowerCase());
 
-	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
+		if (!theme) {
+			return createErrorResponse('Not found', 404, `The theme with the '${name}' name does not exist.`);
+		}
 
-	const theme = communityThemesData.find((theme) => theme.name.toLowerCase() == name.toLowerCase());
-
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the "'${name}' name does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(JSON.stringify(theme));
+	} catch (error) {
+		return handleMongoError(error);
 	}
-
-	return new Response(JSON.stringify(theme));
 });
 
 // /v1/community-themes/name/[name]/download
 router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+	try {
+		const communityThemesData = await findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION);
 
-	const communityThemesData = await themes_collection.find({}, { projection: { _id: 0 } });
+		const theme = communityThemesData.find((theme) => theme.name.toLowerCase() === name.toLowerCase());
 
-	const theme = communityThemesData.find((theme) => theme.name.toLowerCase() == name.toLowerCase());
+		if (!theme) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The theme with the "'${name}' name does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
+		}
 
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the "'${name}' name does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(null, {
+			status: 303,
+			headers: {
+				Location: theme.direct_download_link,
+			},
+		});
+	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
+		throw error;
 	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: theme.direct_download_link,
-		},
-	});
 });
 
 // /v1/community-themes/uuid/[uuid]
 router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+	try {
+		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
-	const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		if (!theme) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The theme with the '${uuid}' uuid does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
+		}
 
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the '${uuid}' uuid does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(JSON.stringify(theme));
+	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
+		throw error;
 	}
-
-	return new Response(JSON.stringify(theme));
 });
 
 // /v1/community-themes/uuid/[uuid]/download
 router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
+	try {
+		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
-	const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		if (!theme) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: `The theme with the '${uuid}' uuid does not exist.`,
+					},
+				}),
+				{ status: 404 }
+			);
+		}
 
-	if (!theme) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Not found',
-					status: 404,
-					message: `The theme with the '${uuid}' uuid does not exist.`,
-				},
-			}),
-			{ status: 404 }
-		);
+		return new Response(null, {
+			status: 303,
+			headers: {
+				Location: theme.direct_download_link,
+			},
+		});
+	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
+		throw error;
 	}
-
-	return new Response(null, {
-		status: 303,
-		headers: {
-			Location: theme.direct_download_link,
-		},
-	});
 });
 
 // /v1/downloads
 router.get(`${apiVersion}/downloads`, async ({ env }) => {
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.DROPTOP_DOWNLOADS);
-
 	try {
-		const downloadsDocument = await collection.findOne({ title: 'downloads' }, { projection: { _id: 0 } });
+		const downloadsDocument = await findOneDocument(env.MONGO_URI, env.DROPTOP_DB, env.DROPTOP_DOWNLOADS, { title: 'downloads' });
 
-		let basic_downloads = downloadsDocument.basic_downloads;
-		let update_downloads = downloadsDocument.update_downloads;
-		let supporter_downloads = downloadsDocument.supporter_downloads;
+		if (!downloadsDocument) {
+			return createErrorResponse('Not found', 404, 'Downloads data not found.');
+		}
+
+		const { basic_downloads, update_downloads, supporter_downloads } = downloadsDocument;
 
 		return new Response(
-			JSON.stringify({ basic_downloads: basic_downloads, update_downloads: update_downloads, supporter_downloads: supporter_downloads })
+			JSON.stringify({ basic_downloads, update_downloads, supporter_downloads })
 		);
 	} catch (error) {
-		return new Response(
-			JSON.stringify({
-				error: {
-					type: 'Something went wrong',
-					status: 500,
-					message: error.message,
-				},
-			}),
-			{ status: 500 }
-		);
+		return handleMongoError(error);
 	}
 });
 
 // /v1/downloads/community-apps
 router.get(`${apiVersion}/downloads/community-apps`, async () => {
-	return new Response(
-		JSON.stringify({
-			error: {
-				type: 'Bad Request',
-				status: 400,
-				message: 'You need to specify an uuid.',
-			},
-		}),
-		{ status: 400 }
-	);
+	return createErrorResponse('Bad Request', 400, 'You need to specify an uuid.');
 });
 
 router.post(`${apiVersion}/downloads/community-apps`, async () => {
-	return new Response(
-		JSON.stringify({
-			error: {
-				type: 'Bad Request',
-				status: 400,
-				message: 'You need to specify an uuid.',
-			},
-		}),
-		{ status: 400 }
-	);
+	return createErrorResponse('Bad Request', 400, 'You need to specify an uuid.');
 });
 
 // /v1/downloads/community-apps/[uuid]
 router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-
 	try {
-		const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		const app = await findAppByUuid(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
 		if (!app) {
 			return new Response(
@@ -1197,6 +772,9 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 
 		return new Response(JSON.stringify(app_data));
 	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -1213,11 +791,8 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-
 	try {
-		const app = await apps_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		const app = await updateDownloads(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
 		if (!app) {
 			return new Response(
@@ -1230,16 +805,13 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 				}),
 				{ status: 404 }
 			);
-		} else {
-			let downloads = app.downloads + 1;
-
-			await apps_collection.updateOne({ uuid: uuid }, { $set: { downloads } });
-
-			app.downloads = downloads;
-
-			return new Response(JSON.stringify(app));
 		}
+
+		return new Response(JSON.stringify(app));
 	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -1255,40 +827,19 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 
 // /v1/downloads/community-themes
 router.get(`${apiVersion}/downloads/community-themes`, async () => {
-	return new Response(
-		JSON.stringify({
-			error: {
-				type: 'Bad Request',
-				status: 400,
-				message: 'You need to specify an uuid.',
-			},
-		}),
-		{ status: 400 }
-	);
+	return createErrorResponse('Bad Request', 400, 'You need to specify an uuid.');
 });
 
 router.post(`${apiVersion}/downloads/community-themes`, async () => {
-	return new Response(
-		JSON.stringify({
-			error: {
-				type: 'Bad Request',
-				status: 400,
-				message: 'You need to specify an uuid.',
-			},
-		}),
-		{ status: 400 }
-	);
+	return createErrorResponse('Bad Request', 400, 'You need to specify an uuid.');
 });
 
 // /v1/downloads/community-themes/[uuid]
 router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
-
 	try {
-		const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 		if (!theme) {
 			return new Response(
@@ -1310,6 +861,9 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 
 		return new Response(JSON.stringify(theme_data));
 	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -1326,11 +880,8 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const themes_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.THEMES_COLLECTION);
-
 	try {
-		const theme = await themes_collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 		if (!theme) {
 			return new Response(
@@ -1344,15 +895,14 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 				{ status: 404 }
 			);
 		} else {
-			let downloads = theme.downloads + 1;
+			const updatedTheme = await updateDownloads(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
-			await themes_collection.updateOne({ uuid: uuid }, { $set: { downloads } });
-
-			theme.downloads = downloads;
-
-			return new Response(JSON.stringify(theme));
+			return new Response(JSON.stringify(updatedTheme));
 		}
 	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -1369,15 +919,11 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 // /v1/droptop
 router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
 	try {
-		const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-		const version_collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.VERSION_COLLECTION);
+		const versionData = await findOneDocument(env.MONGO_URI, env.DROPTOP_DB, env.VERSION_COLLECTION, { title: 'version' });
 
-		const versionData = await version_collection.findOne({ title: 'version' }, { projection: { _id: 0 } });
+		const appsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
 
-		const apps_collection = user.mongoClient('mongodb-atlas').db(env.CREATIONS_DB).collection(env.APPS_COLLECTION);
-		const appsData = await apps_collection.find({}, { projection: { _id: 0 } });
-
-		const appVersions = {}; 
+		const appVersions = {};
 		let appIndex = 1;
 		for (let param in req.query) {
 			const app = appsData.find((app) => app.name.toLowerCase() == req.query[param].toLowerCase());
@@ -1397,6 +943,9 @@ router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
 
 		return new Response(JSON.stringify(response));
 	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
 		return new Response(
 			JSON.stringify({
 				error: {
@@ -1422,16 +971,33 @@ router.get(`${apiVersion}/ping`, () => {
 
 // /v1/version
 router.get(`${apiVersion}/version`, async ({ env }) => {
-	const user = await login(env.REALM_APPID, env.REALM_APIKEY);
-	const version_collection = user.mongoClient('mongodb-atlas').db(env.DROPTOP_DB).collection(env.VERSION_COLLECTION);
+	try {
+		const versionData = await findOneDocument(env.MONGO_URI, env.DROPTOP_DB, env.VERSION_COLLECTION, { title: 'version' });
 
-	const versionData = await version_collection.findOne({ title: 'version' }, { projection: { _id: 0 } });
+		if (!versionData) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						type: 'Not found',
+						status: 404,
+						message: 'Version data not found.',
+					},
+				}),
+				{ status: 404 }
+			);
+		}
 
-	return new Response(JSON.stringify(versionData.base));
+		return new Response(JSON.stringify(versionData.base));
+	} catch (error) {
+		if (error instanceof Response) {
+			return error;
+		}
+		throw error;
+	}
 });
 
 router.any('*', () => {
-	new Response(
+	return new Response(
 		JSON.stringify({
 			error: {
 				type: 'Not Found',

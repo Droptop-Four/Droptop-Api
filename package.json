@@ -1,6 +1,6 @@
 {
 	"name": "droptop-api",
-	"version": "1.0.2",
+	"version": "1.1.0",
 	"author": "Bunz <66bunz@gmail.com> (https://droptopfour.com)",
 	"description": "This is the Droptop Four official API made with Cloudflare Workers.",
 	"repository": {
@@ -20,10 +20,11 @@
 	},
 	"dependencies": {
 		"@tsndr/cloudflare-worker-router": "^3.2.4",
+		"mongodb": "^6.18.0",
 		"realm-web": "^2.0.0",
 		"toucan-js": "^4.0.0"
 	},
 	"devDependencies": {
-		"wrangler": "^3.78.10"
+		"wrangler": "^4.28.1"
 	}
 }
