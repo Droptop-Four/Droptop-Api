@@ -12,6 +12,7 @@
 	},
 	"license": "GPL-3.0",
 	"private": true,
+  "type": "module",
 	"main": "index.js",
 	"scripts": {
 		"deploy": "wrangler deploy",

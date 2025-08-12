@@ -25,7 +25,7 @@ router.get('/', () => {
 	return createErrorResponse('Bad Request', 400, 'You need to specify the api version.');
 });
 
-// /v1/
+// /v1
 router.get(`${apiVersion}`, () => {
 	return new Response(JSON.stringify(endpoints));
 });
