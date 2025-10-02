@@ -1,7 +1,7 @@
 name = "droptop-api"
 main = "src/index.js"
+compatibility_date = "2025-09-21"
 compatibility_flags = ["nodejs_compat"]
-compatibility_date = "2025-05-05"
 
 [observability]
 enabled = true
