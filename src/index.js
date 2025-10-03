@@ -941,7 +941,6 @@ router.get(`${apiVersion}/ping`, () => {
 // /v1/version
 router.get(`${apiVersion}/version`, async ({ env }) => {
 	try {
-		console.log("/version endpoint")
 		const versionData = await getProxy(env).findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
 
 		if (!versionData) {

@@ -14,10 +14,7 @@ export class MongoDBDurableConnector extends DurableObject {
         if (!this.isConnected) {
             console.error("MongoDB client is not connected");
             try {
-                this.client = new MongoClient(this.env.MONGO_URI, {
-                    serverSelectionTimeoutMS: 5000,
-                    maxIdleTimeMS: 20 * 1000,
-                });
+                this.client = new MongoClient(this.env.MONGO_URI);
                 
                 await this.client.connect();
                 this.isConnected = true;
