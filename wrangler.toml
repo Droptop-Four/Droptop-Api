@@ -13,4 +13,4 @@ class_name = "MongoDBDurableConnector"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["MongoDBDurableConnector"]
+new_sqlite_classes = ["MongoDBDurableConnector"]
