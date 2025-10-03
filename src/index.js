@@ -9,7 +9,9 @@ export { MongoDBDurableConnector } from './MongoDBDurableConnector';
 const router = new Router();
 const apiVersion = '/v1';
 
-let proxy = null;
+// const id = env.MONGODB_DURABLE_OBJECT.idFromName('mongodb-connector');
+// let proxy = env.MONGODB_DURABLE_OBJECT.get(id);
+let proxy = env.MONGODB_DURABLE_OBJECT.getByName(new URL(request.url).pathname);
 
 // Enabling built-in CORS support
 router.cors();
@@ -959,10 +961,6 @@ export default {
 		});
 
 		try {
-			// const id = env.MONGODB_DURABLE_OBJECT.idFromName('mongodb-connector');
-			// proxy = env.MONGODB_DURABLE_OBJECT.get(id);
-			proxy = env.MONGODB_DURABLE_OBJECT.getByName(new URL(request.url).pathname);
-
 			return await router.handle(request, env, ctx);
 		} catch (error) {
 			sentry.captureException(error);
