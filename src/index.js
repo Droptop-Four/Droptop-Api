@@ -934,7 +934,7 @@ router.get(`${apiVersion}/ping`, () => {
 // /v1/version
 router.get(`${apiVersion}/version`, async ({ env }) => {
 	try {
-		const versionData = await findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
+		const versionData = await proxy.findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
 
 		if (!versionData) {
 			return createErrorResponse('Not found', 404, 'Version data not found.');
