@@ -12,7 +12,9 @@ import {
 	findAllThemes,
 	updateDownloads,
 	findOneDocument
-} from './mongo';
+} from './mongo-durable';
+
+export { MongoDBDurableConnector } from './MongoDBDurableConnector';
 
 const router = new Router();
 const apiVersion = '/v1';
@@ -342,7 +344,7 @@ router.get(`${apiVersion}/community-apps/uuid`, async () => {
 // /v1/community-apps
 router.get(`${apiVersion}/community-apps/`, async ({ env }) => {
 	try {
-		const communityAppsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
+		const communityAppsData = await findAllApps(env, env.CREATIONS_DB, env.APPS_COLLECTION);
 		return new Response(JSON.stringify(communityAppsData));
 	} catch (error) {
 		return handleMongoError(error);
@@ -357,7 +359,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 	if (validationError) return validationError;
 
 	try {
-		const app = await findAppById(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, id);
+		const app = await findAppById(env, env.CREATIONS_DB, env.APPS_COLLECTION, id);
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
@@ -377,7 +379,7 @@ router.get(`${apiVersion}/community-apps/:id/download`, async ({ env, req }) => 
 	if (validationError) return validationError;
 
 	try {
-		const app = await findAppById(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, id);
+		const app = await findAppById(env, env.CREATIONS_DB, env.APPS_COLLECTION, id);
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
@@ -409,7 +411,7 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const communityAppsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
+		const communityAppsData = await findAllApps(env, env.CREATIONS_DB, env.APPS_COLLECTION);
 		const app = communityAppsData.find((app) => app.name.toLowerCase() === name.toLowerCase());
 
 		if (!app) {
@@ -427,7 +429,7 @@ router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ env, req
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const communityAppsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
+		const communityAppsData = await findAllApps(env, env.CREATIONS_DB, env.APPS_COLLECTION);
 
 		const app = communityAppsData.find((app) => app.name.toLowerCase() === name.toLowerCase());
 
@@ -463,7 +465,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await findAppByUuid(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
+		const app = await findAppByUuid(env, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
 		if (!app) {
 			return new Response(
@@ -492,7 +494,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await findAppByUuid(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
+		const app = await findAppByUuid(env, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
 		if (!app) {
 			return new Response(
@@ -525,8 +527,8 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req
 router.get(`${apiVersion}/community-creations`, async ({ env }) => {
 	try {
 		const [communityAppsData, communityThemesData] = await Promise.all([
-			findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION),
-			findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION)
+			findAllApps(env, env.CREATIONS_DB, env.APPS_COLLECTION),
+			findAllThemes(env, env.CREATIONS_DB, env.THEMES_COLLECTION)
 		]);
 
 		const creations = {
@@ -573,7 +575,7 @@ router.get(`${apiVersion}/community-themes/uuid`, async () => {
 // /v1/community-themes
 router.get(`${apiVersion}/community-themes/`, async ({ env }) => {
 	try {
-		const communityThemesData = await findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION);
+		const communityThemesData = await findAllThemes(env, env.CREATIONS_DB, env.THEMES_COLLECTION);
 		return new Response(JSON.stringify(communityThemesData));
 	} catch (error) {
 		return handleMongoError(error);
@@ -605,7 +607,7 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ env, req }) => 
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const communityThemesData = await findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION);
+		const communityThemesData = await findAllThemes(env, env.CREATIONS_DB, env.THEMES_COLLECTION);
 		const theme = communityThemesData.find((theme) => theme.name.toLowerCase() === name.toLowerCase());
 
 		if (!theme) {
@@ -623,7 +625,7 @@ router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ env, r
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const communityThemesData = await findAllThemes(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION);
+		const communityThemesData = await findAllThemes(env, env.CREATIONS_DB, env.THEMES_COLLECTION);
 
 		const theme = communityThemesData.find((theme) => theme.name.toLowerCase() === name.toLowerCase());
 
@@ -659,7 +661,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ env, req }) => 
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
+		const theme = await findThemeByUuid(env, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 		if (!theme) {
 			return new Response(
@@ -688,7 +690,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ env, r
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
+		const theme = await findThemeByUuid(env, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 		if (!theme) {
 			return new Response(
@@ -720,7 +722,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ env, r
 // /v1/downloads
 router.get(`${apiVersion}/downloads`, async ({ env }) => {
 	try {
-		const downloadsDocument = await findOneDocument(env.MONGO_URI, env.DROPTOP_DB, env.DROPTOP_DOWNLOADS, { title: 'downloads' });
+		const downloadsDocument = await findOneDocument(env, env.DROPTOP_DB, env.DROPTOP_DOWNLOADS, { title: 'downloads' });
 
 		if (!downloadsDocument) {
 			return createErrorResponse('Not found', 404, 'Downloads data not found.');
@@ -750,7 +752,7 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await findAppByUuid(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
+		const app = await findAppByUuid(env, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
 		if (!app) {
 			return new Response(
@@ -792,7 +794,7 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await updateDownloads(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
+		const app = await updateDownloads(env, env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
 		if (!app) {
 			return new Response(
@@ -839,7 +841,7 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
+		const theme = await findThemeByUuid(env, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 		if (!theme) {
 			return new Response(
@@ -881,7 +883,7 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await findThemeByUuid(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
+		const theme = await findThemeByUuid(env, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 		if (!theme) {
 			return new Response(
@@ -895,7 +897,7 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 				{ status: 404 }
 			);
 		} else {
-			const updatedTheme = await updateDownloads(env.MONGO_URI, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
+			const updatedTheme = await updateDownloads(env, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 			return new Response(JSON.stringify(updatedTheme));
 		}
@@ -919,9 +921,9 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 // /v1/droptop
 router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
 	try {
-		const versionData = await findOneDocument(env.MONGO_URI, env.DROPTOP_DB, env.VERSION_COLLECTION, { title: 'version' });
+		const versionData = await findOneDocument(env, env.DROPTOP_DB, env.VERSION_COLLECTION, { title: 'version' });
 
-		const appsData = await findAllApps(env.MONGO_URI, env.CREATIONS_DB, env.APPS_COLLECTION);
+		const appsData = await findAllApps(env, env.CREATIONS_DB, env.APPS_COLLECTION);
 
 		const appVersions = {};
 		let appIndex = 1;
@@ -972,7 +974,7 @@ router.get(`${apiVersion}/ping`, () => {
 // /v1/version
 router.get(`${apiVersion}/version`, async ({ env }) => {
 	try {
-		const versionData = await findOneDocument(env.MONGO_URI, env.DROPTOP_DB, env.VERSION_COLLECTION, { title: 'version' });
+		const versionData = await findOneDocument(env, env.DROPTOP_DB, env.VERSION_COLLECTION, { title: 'version' });
 
 		if (!versionData) {
 			return new Response(

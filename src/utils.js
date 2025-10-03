@@ -42,7 +42,7 @@ const handleFindById = async (env, id, findFunction, itemType, dbName, collectio
     if (validationError) return validationError;
 
     try {
-        const item = await findFunction(env.MONGO_URI, dbName, collection, id);
+        const item = await findFunction(env, dbName, collection, id);
         if (!item) {
             return createErrorResponse('Not found', 404, `The ${itemType} with the '${id}' id does not exist.`);
         }
@@ -58,7 +58,7 @@ const handleDownloadById = async (env, id, findFunction, itemType, dbName, colle
     if (validationError) return validationError;
 
     try {
-        const item = await findFunction(env.MONGO_URI, dbName, collection, id);
+        const item = await findFunction(env, dbName, collection, id);
         if (!item) {
             return createErrorResponse('Not found', 404, `The ${itemType} with the '${id}' id does not exist.`);
         }
