@@ -10,9 +10,11 @@ const router = new Router();
 const apiVersion = '/v1';
 
 function getProxy(env) {
+	console.error("gerProxy")
 	const id = env.MONGODB_DURABLE_OBJECT.idFromName('mongodb-connector');
 	const proxy = env.MONGODB_DURABLE_OBJECT.get(id);
 
+	console.error(proxy)
 	return proxy;
 }
 
@@ -939,6 +941,7 @@ router.get(`${apiVersion}/ping`, () => {
 // /v1/version
 router.get(`${apiVersion}/version`, async ({ env }) => {
 	try {
+		console.log("/version endpoint")
 		const versionData = await getProxy(env).findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
 
 		if (!versionData) {
