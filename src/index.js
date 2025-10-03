@@ -9,9 +9,12 @@ export { MongoDBDurableConnector } from './MongoDBDurableConnector';
 const router = new Router();
 const apiVersion = '/v1';
 
-// const id = env.MONGODB_DURABLE_OBJECT.idFromName('mongodb-connector');
-// let proxy = env.MONGODB_DURABLE_OBJECT.get(id);
-let proxy = env.MONGODB_DURABLE_OBJECT.getByName(new URL(request.url).pathname);
+function getProxy(env) {
+	const id = env.MONGODB_DURABLE_OBJECT.idFromName('mongodb-connector');
+	const proxy = env.MONGODB_DURABLE_OBJECT.get(id);
+
+	return proxy;
+}
 
 // Enabling built-in CORS support
 router.cors();
@@ -366,7 +369,7 @@ router.get(`${apiVersion}/community-apps/uuid`, async () => {
 // /v1/community-apps
 router.get(`${apiVersion}/community-apps/`, async ({ env }) => {
 	try {
-		const communityAppsData = await proxy.findAll(env.CREATIONS_DB, env.APPS_COLLECTION);
+		const communityAppsData = await getProxy(env).findAll(env.CREATIONS_DB, env.APPS_COLLECTION);
 
 		return new Response(JSON.stringify(communityAppsData));
 	} catch (error) {
@@ -382,7 +385,7 @@ router.get(`${apiVersion}/community-apps/:id`, async ({ env, req }) => {
 	if (validationError) return validationError;
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
@@ -402,7 +405,7 @@ router.get(`${apiVersion}/community-apps/:id/download`, async ({ env, req }) => 
 	if (validationError) return validationError;
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
@@ -427,7 +430,7 @@ router.get(`${apiVersion}/community-apps/id/:id`, async ({ env, req }) => {
 	if (validationError) return validationError;
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
@@ -447,7 +450,7 @@ router.get(`${apiVersion}/community-apps/id/:id/download`, async ({ env, req }) 
 	if (validationError) return validationError;
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { id: id });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${id}' id does not exist.`);
@@ -469,7 +472,7 @@ router.get(`${apiVersion}/community-apps/name/:name`, async ({ env, req }) => {
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { name: name });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { name: name });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${name}' name does not exist.`);
@@ -486,7 +489,7 @@ router.get(`${apiVersion}/community-apps/name/:name/download`, async ({ env, req
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { name: name });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { name: name });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${name}' name does not exist.`);
@@ -508,7 +511,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid`, async ({ env, req }) => {
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { uuid: uuid });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { uuid: uuid });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${uuid}' uuid does not exist.`);
@@ -525,7 +528,7 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { uuid: uuid });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { uuid: uuid });
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${uuid}' uuid does not exist.`);
@@ -546,8 +549,8 @@ router.get(`${apiVersion}/community-apps/uuid/:uuid/download`, async ({ env, req
 router.get(`${apiVersion}/community-creations`, async ({ env }) => {
 	try {
 		const [communityAppsData, communityThemesData] = await Promise.all([
-			proxy.findAll(env.CREATIONS_DB, env.APPS_COLLECTION),
-			proxy.findAll(env.CREATIONS_DB, env.THEMES_COLLECTION),
+			getProxy(env).findAll(env.CREATIONS_DB, env.APPS_COLLECTION),
+			getProxy(env).findAll(env.CREATIONS_DB, env.THEMES_COLLECTION),
 		]);
 
 		const creations = {
@@ -594,7 +597,7 @@ router.get(`${apiVersion}/community-themes/uuid`, async () => {
 // /v1/community-themes
 router.get(`${apiVersion}/community-themes/`, async ({ env }) => {
 	try {
-		const communityThemesData = await proxy.findAll(env.CREATIONS_DB, env.THEMES_COLLECTION);
+		const communityThemesData = await getProxy(env).findAll(env.CREATIONS_DB, env.THEMES_COLLECTION);
 
 		return new Response(JSON.stringify(communityThemesData));
 	} catch (error) {
@@ -610,7 +613,7 @@ router.get(`${apiVersion}/community-themes/:id`, async ({ env, req }) => {
 	if (validationError) return validationError;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${id}' id does not exist.`);
@@ -630,7 +633,7 @@ router.get(`${apiVersion}/community-themes/:id/download`, async ({ env, req }) =
 	if (validationError) return validationError;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${id}' id does not exist.`);
@@ -655,7 +658,7 @@ router.get(`${apiVersion}/community-themes/id/:id`, async ({ env, req }) => {
 	if (validationError) return validationError;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${id}' id does not exist.`);
@@ -675,7 +678,7 @@ router.get(`${apiVersion}/community-themes/id/:id/download`, async ({ env, req }
 	if (validationError) return validationError;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { id: id });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${id}' id does not exist.`);
@@ -697,7 +700,7 @@ router.get(`${apiVersion}/community-themes/name/:name`, async ({ env, req }) => 
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { name: name });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { name: name });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${name}' name does not exist.`);
@@ -714,7 +717,7 @@ router.get(`${apiVersion}/community-themes/name/:name/download`, async ({ env, r
 	const name = decodeURIComponent(req.params.name);
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { name: name });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { name: name });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${name}' name does not exist.`);
@@ -736,7 +739,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid`, async ({ env, req }) => 
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${uuid}' uuid does not exist.`);
@@ -753,7 +756,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ env, r
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${uuid}' uuid does not exist.`);
@@ -773,7 +776,7 @@ router.get(`${apiVersion}/community-themes/uuid/:uuid/download`, async ({ env, r
 // /v1/downloads
 router.get(`${apiVersion}/downloads`, async ({ env }) => {
 	try {
-		const downloadsDocument = await proxy.findOne(env.DROPTOP_DB, env.DROPTOP_DOWNLOADS, { query: { title: 'downloads' } });
+		const downloadsDocument = await getProxy(env).findOne(env.DROPTOP_DB, env.DROPTOP_DOWNLOADS, { query: { title: 'downloads' } });
 
 		if (!downloadsDocument) {
 			return createErrorResponse('Not found', 404, 'Downloads data not found.');
@@ -801,7 +804,7 @@ router.get(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req }) 
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await proxy.findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { uuid: uuid });
+		const app = await getProxy(env).findOne(env.CREATIONS_DB, env.APPS_COLLECTION, { uuid: uuid });
 
 		if (!app) {
 			return new Response(
@@ -857,7 +860,7 @@ router.get(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req }
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${uuid}' uuid does not exist.`);
@@ -878,7 +881,7 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 	const uuid = req.params.uuid;
 
 	try {
-		const theme = await proxy.findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
+		const theme = await getProxy(env).findOne(env.CREATIONS_DB, env.THEMES_COLLECTION, { uuid: uuid });
 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${uuid}' uuid does not exist.`);
@@ -895,9 +898,9 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 // /v1/droptop
 router.get(`${apiVersion}/droptop`, async ({ env, req }) => {
 	try {
-		const versionData = await proxy.findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
+		const versionData = await getProxy(env).findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
 
-		const appsData = await proxy.findAll(env.CREATIONS_DB, env.APPS_COLLECTION);
+		const appsData = await getProxy(env).findAll(env.CREATIONS_DB, env.APPS_COLLECTION);
 
 		const appVersions = {};
 		let appIndex = 1;
@@ -936,7 +939,7 @@ router.get(`${apiVersion}/ping`, () => {
 // /v1/version
 router.get(`${apiVersion}/version`, async ({ env }) => {
 	try {
-		const versionData = await proxy.findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
+		const versionData = await getProxy(env).findOne(env.DROPTOP_DB, env.VERSION_COLLECTION);
 
 		if (!versionData) {
 			return createErrorResponse('Not found', 404, 'Version data not found.');
