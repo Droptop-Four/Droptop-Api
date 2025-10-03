@@ -10,25 +10,20 @@ export class MongoDBDurableConnector extends DurableObject {
     }
 
     async ensureConnection() {
-        console.error("ensuring connection")
         if (!this.isConnected) {
-            console.error("MongoDB client is not connected");
             try {
                 this.client = new MongoClient(this.env.MONGO_URI);
                 
                 await this.client.connect();
                 this.isConnected = true;
             } catch (error) {
-                console.error('MongoDB connection error:', error);
                 throw error;
             }
         }
-        console.error("MongoDB client is connected");
     }
 
     async findOne(dbName, collectionName, { id, uuid, name, query } = {}) {
         await this.ensureConnection();
-        console.error("findOne")
     
         const collection = this.client.db(dbName).collection(collectionName);
         let searchQuery = {};
@@ -48,7 +43,6 @@ export class MongoDBDurableConnector extends DurableObject {
 
     async findAll(dbName, collectionName) {
         await this.ensureConnection();
-        console.error("findAll")
 
         const collection = this.client.db(dbName).collection(collectionName);
 
@@ -57,7 +51,6 @@ export class MongoDBDurableConnector extends DurableObject {
 
     async updateDownloads(dbName, collectionName, uuid) {
         await this.ensureConnection();
-        console.error("updateDownloads")
 
         const collection = this.client.db(dbName).collection(collectionName);
 
