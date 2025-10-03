@@ -1,107 +1,70 @@
-import { DurableObject } from "cloudflare:workers";
-import { MongoClient } from "mongodb";
+import { DurableObject } from 'cloudflare:workers';
+import { MongoClient } from 'mongodb';
 
 export class MongoDBDurableConnector extends DurableObject {
-    constructor(state, env) {
-        super(state, env);
-        this.env = env;
-        this.client = null;
-        this.isConnected = false;
-    }
+	constructor(state, env) {
+		super(state, env);
+		this.env = env;
+		this.client = null;
+		this.isConnected = false;
+	}
 
-    async ensureConnection() {
-        if (!this.isConnected) {
-            try {
-                this.client = new MongoClient(this.env.MONGO_URI, {
-                    serverSelectionTimeoutMS: 5000,
-                    maxIdleTimeMS: 20 * 1000,
-                });
-                
-                await this.client.connect();
-                this.isConnected = true;
-            } catch (error) {
-                console.error('MongoDB connection error:', error);
-                throw error;
-            }
-        }
-    }
+	async ensureConnection() {
+		if (!this.isConnected) {
+			try {
+				this.client = new MongoClient(this.env.MONGO_URI, {
+					serverSelectionTimeoutMS: 5000,
+					maxIdleTimeMS: 20 * 1000,
+				});
 
-    async fetch(request) {
-        try {
-            const { method, args } = await request.json();
-            
-            // Chiama il metodo appropriato
-            const result = await this[method](...args);
-            
-            return new Response(JSON.stringify(result), {
-                headers: { 'Content-Type': 'application/json' }
-            });
-        } catch (error) {
-            console.error('Durable Object error:', error);
-            return new Response(error.message, { status: 500 });
-        }
-    }
+				await this.client.connect();
+				this.isConnected = true;
+			} catch (error) {
+				console.error('MongoDB connection error:', error);
+				throw error;
+			}
+		}
+	}
 
-    async findById(dbName, collectionName, id) {
-        await this.ensureConnection();
-        const collection = this.client.db(dbName).collection(collectionName);
-        return await collection.findOne({ id: Number(id) }, { projection: { _id: 0 } });
-    }
+	async findOne(dbName, collectionName, { id, uuid, name, query } = {}) {
+		await this.ensureConnection();
 
-    async findByUuid(dbName, collectionName, uuid) {
-        await this.ensureConnection();
-        const collection = this.client.db(dbName).collection(collectionName);
-        return await collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
-    }
+		const collection = this.client.db(dbName).collection(collectionName);
+		let searchQuery = {};
 
-    async findAll(dbName, collectionName) {
-        await this.ensureConnection();
-        const collection = this.client.db(dbName).collection(collectionName);
-        return await collection.find({}, { projection: { _id: 0 } }).toArray();
-    }
+		if (id !== undefined) {
+			searchQuery = { id: Number(id) };
+		} else if (uuid !== undefined) {
+			searchQuery = { uuid: uuid };
+		} else if (name !== undefined) {
+			searchQuery = { name: name };
+		} else if (query !== undefined) {
+			searchQuery = query;
+		}
 
-    async updateDownloads(dbName, collectionName, uuid) {
-        await this.ensureConnection();
-        const collection = this.client.db(dbName).collection(collectionName);
+		return await collection.findOne(searchQuery, { projection: { _id: 0 } });
+	}
 
-        const item = await collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
-        if (item) {
-            const downloads = item.downloads + 1;
-            await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
-            item.downloads = downloads;
-            return item;
-        }
-        return null;
-    }
+	async findAll(dbName, collectionName) {
+		await this.ensureConnection();
 
-    async findOneDocument(dbName, collectionName, query) {
-        await this.ensureConnection();
-        const collection = this.client.db(dbName).collection(collectionName);
-        return await collection.findOne(query, { projection: { _id: 0 } });
-    }
+		const collection = this.client.db(dbName).collection(collectionName);
 
-    // Metodi specializzati
-    async findAppById(dbName, collectionName, id) {
-        return await this.findById(dbName, collectionName, id);
-    }
+		return await collection.find({}, { projection: { _id: 0 } }).toArray();
+	}
 
-    async findAppByUuid(dbName, collectionName, uuid) {
-        return await this.findByUuid(dbName, collectionName, uuid);
-    }
+	async updateDownloads(dbName, collectionName, uuid) {
+		await this.ensureConnection();
 
-    async findAllApps(dbName, collectionName) {
-        return await this.findAll(dbName, collectionName);
-    }
+		const collection = this.client.db(dbName).collection(collectionName);
 
-    async findThemeById(dbName, collectionName, id) {
-        return await this.findById(dbName, collectionName, id);
-    }
-
-    async findThemeByUuid(dbName, collectionName, uuid) {
-        return await this.findByUuid(dbName, collectionName, uuid);
-    }
-
-    async findAllThemes(dbName, collectionName) {
-        return await this.findAll(dbName, collectionName);
-    }
+		const item = await collection.findOne({ uuid: uuid }, { projection: { _id: 0 } });
+		if (item) {
+			const downloads = item.downloads + 1;
+			await collection.updateOne({ uuid: uuid }, { $set: { downloads } });
+			item.downloads = downloads;
+			return item;
+		}
+		return null;
+	}
 }
