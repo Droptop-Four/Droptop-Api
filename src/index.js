@@ -959,8 +959,9 @@ export default {
 		});
 
 		try {
-			const id = env.MONGODB_DURABLE_OBJECT.idFromName('mongodb-connector');
-			proxy = env.MONGODB_DURABLE_OBJECT.get(id);
+			// const id = env.MONGODB_DURABLE_OBJECT.idFromName('mongodb-connector');
+			// proxy = env.MONGODB_DURABLE_OBJECT.get(id);
+			proxy = env.MONGODB_DURABLE_OBJECT.getByName(new URL(request.url).pathname);
 
 			return await router.handle(request, env, ctx);
 		} catch (error) {
