@@ -834,7 +834,7 @@ router.post(`${apiVersion}/downloads/community-apps/:uuid`, async ({ env, req })
 	const uuid = req.params.uuid;
 
 	try {
-		const app = await updateDownloads(env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
+		const app = await getProxy(env).updateDownloads(env.CREATIONS_DB, env.APPS_COLLECTION, uuid);
 
 		if (!app) {
 			return createErrorResponse('Not found', 404, `The app with the '${uuid}' uuid does not exist.`);
@@ -886,7 +886,7 @@ router.post(`${apiVersion}/downloads/community-themes/:uuid`, async ({ env, req 
 		if (!theme) {
 			return createErrorResponse('Not found', 404, `The theme with the '${uuid}' uuid does not exist.`);
 		} else {
-			const updatedTheme = await updateDownloads(env, env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
+			const updatedTheme = await getProxy(env).updateDownloads(env.CREATIONS_DB, env.THEMES_COLLECTION, uuid);
 
 			return new Response(JSON.stringify(updatedTheme));
 		}
