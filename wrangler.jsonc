@@ -7,7 +7,7 @@
 	"name": "droptop-api",
 	"main": "src/index.js",
 	"workers_dev": false,
-	"compatibility_date": "2025-10-03",
+	"compatibility_date": "2026-04-01",
 	"compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
 	"migrations": [
 		{

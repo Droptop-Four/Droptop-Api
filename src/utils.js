@@ -19,7 +19,7 @@ const createErrorResponse = (type, status, message) => {
 const createGitHubHeaders = (githubApiKey) => ({
 	Accept: 'application/vnd.github+json',
 	Authorization: `Bearer ${githubApiKey}`,
-	'X-GitHub-Api-Version': '2022-11-28',
+	'X-GitHub-Api-Version': '2026-03-10',
 	'User-Agent': 'droptop-api',
 });
 
